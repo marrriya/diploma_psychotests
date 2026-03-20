@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Главная</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/main.css') }}">
+</head>
+<body>
+<header>
+    <h1>🧠 Психологические тесты</h1>
+    <nav>
+        {% if username %}
+            <span>Привет, {{ username }}!</span>
+            <a href="/logout">Выйти</a>
+        {% else %}
+            <a href="/login">Войти</a>
+            <a href="/register">Регистрация</a>
+        {% endif %}
+    </nav>
+</header>
+
+<main>
+
+    <h2>Каталог тестов</h2>
+
+    {% for topic, test_list in tests.items() %}
+        <div class="category">
+            <h3>{{ topic }}</h3>
+            <div class="tests">
+                {% for test in test_list %}
+                    <div class="test-card">{{ test }}</div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endfor %}
+
+    </div>
+
+</main>
+</body>
+</html>

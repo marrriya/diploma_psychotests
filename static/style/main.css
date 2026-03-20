@@ -1,0 +1,45 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background: #f0f0f5;
+    color: #333;
+}
+header {
+    background: #5a5aa5;
+    color: white;
+    padding: 15px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+nav a {
+    margin-left: 15px;
+    color: white;
+    text-decoration: none;
+}
+nav a:hover {
+    text-decoration: underline;
+}
+main {
+    padding: 30px;
+}
+.category h3 {
+    color: #5a5aa5;
+}
+.tests {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+.test-card {
+    background: #d3d3f0;
+    padding: 15px;
+    border-radius: 10px;
+    min-width: 150px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+.test-card:hover {
+    transform: translateY(-3px);
+}
