@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Тест</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/test.css') }}">
+</head>
+<body>
+
+<div class="test-container">
+
+    <form id="testForm" method="post" action="/submit_test">
+
+        {% for q in questions %}
+        <div class="question" data-index="{{ loop.index0 }}">
+
+            <!-- номер -->
+            <div class="question-number">
+                Вопрос {{ q.order }}
+            </div>
+
+            <!-- текст -->
+            <div class="question-box">
+                {% for statement in q.text %}
+                    <div class="statement-box">
+                        {{ statement }}
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- ответы -->
+            <div class="answers">
+
+                {% if q.type == 'radio' %}
+                    {% for opt in q.options %}
+                        <label class="radio-option">
+                            <input type="radio" name="q_{{ q.id }}" value="{{ opt[0] }}">
+                            {{ opt[1] }}
+                        </label>
+                    {% endfor %}
+                {% endif %}
+
+                {% if q.type == 'scale' %}
+                    <div class="scale">
+                        {% for opt in q.options %}
+                            <label>
+                                <input type="radio" name="q_{{ q.id }}" value="{{ opt[0] }}">
+                                <span>{{ opt[1] }}</span>
+                            </label>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+            </div>
+
+        </div>
+        {% endfor %}
+
+
+        <!-- НАВИГАЦИЯ -->
+        <div class="navigation">
+            <button type="button" onclick="prevQuestion()">Назад</button>
+            <button type="button" onclick="nextQuestion()">Дальше</button>
+            <button type="submit" id="submitBtn">Завершить</button>
+        </div>
+
+    </form>
+
+</div>
+
+<script>
+let current = 0;
+const questions = document.querySelectorAll('.question');
+let answers = JSON.parse(localStorage.getItem('testAnswers')) || {};
+
+
+function showQuestion(index) {
+    questions.forEach(q => q.style.display = 'none');
+    questions[index].style.display = 'block';
+
+    updateButtons();
+    restoreAnswer();
+    // document.querySelector('.navigation button[onclick="prevQuestion()"]').style.display = index === 0 ? 'none' : 'inline-block';
+    // document.querySelector('.navigation button[onclick="nextQuestion()"]').style.display = index === questions.length - 1 ? 'none' : 'inline-block';
+    // document.getElementById('submitBtn').style.display = index === questions.length - 1 ? 'inline-block' : 'none';
+}
+
+function getCurrentQuestionId(){
+    return questions[current].querySelector('input').name;
+}
+
+function isAnswered() {
+    const inputs = questions[current].querySelectorAll('input[type="radio"]');
+    return Array.from(inputs).some(input => input.checked);
+}
+
+function updateButtons() {
+    document.querySelector('.navigation button[onclick="prevQuestion()"]').style.display = current === 0 ? 'none' : 'inline-block';
+
+    document.querySelector('.navigation button[onclick="nextQuestion()"]').style.display = current === questions.length - 1 ? 'none' : 'inline-block';
+
+    document.getElementById('submitBtn').style.display = current === questions.length - 1 ? 'inline-block' : 'none';
+}
+
+function saveAnswer() {
+    const selected = questions[current].querySelector('input:checked');
+    if (selected) {
+        answers[selected.name] = selected.value;
+        localStorage.setItem('testAnswers', JSON.stringify(answers));
+    }
+}
+
+function restoreAnswer() {
+    const inputs = questions[current].querySelectorAll('input');
+
+    inputs.forEach(input => {
+        if (answers[input.name] == input.value) {
+            input.checked = true;
+        }
+    });
+}
+
+function nextQuestion() {
+    if (!isAnswered()) {
+        alert("Ответь на вопрос!");
+        return;
+    }
+
+    saveAnswer();
+    current++;
+    showQuestion(current);
+}
+
+function prevQuestion() {
+    saveAnswer();
+    current--;
+    showQuestion(current);
+}
+
+document.addEventListener('change', function(e) {
+    if (e.target.type === 'radio') {
+        saveAnswer();
+    }
+});
+
+document.getElementById('testForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    if (!isAnswered()) {
+        alert("Ответь на последний вопрос!");
+        return;
+    }
+
+    saveAnswer();
+
+    // очищаем старые hidden
+    document.querySelectorAll('.hidden-answer').forEach(el => el.remove());
+
+    for (let key in answers) {
+        let input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = key;
+        input.value = answers[key];
+        input.classList.add('hidden-answer');
+        this.appendChild(input);
+    }
+
+    localStorage.removeItem('testAnswers');
+
+    this.submit();
+});
+
+// старт
+showQuestion(current);
+</script>
+
+</body>
+</html>

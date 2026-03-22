@@ -1,0 +1,93 @@
+body {
+    font-family: Arial, sans-serif;
+    background: #f5f6fa;
+}
+
+.test-container {
+    width: 600px;
+    margin: 50px auto;
+}
+
+.question {
+    display: none;
+}
+
+.question-box {
+    border: 2px solid #ddd;
+    padding: 20px;
+    border-radius: 12px;
+    background: white;
+    margin-bottom: 20px;
+}
+
+/* утверждения */
+.statement-box {
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+/* radio вертикально */
+.radio-option {
+    display: block;
+    margin: 8px 0;
+}
+
+/* scale горизонтально */
+.scale {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+}
+
+.scale label {
+    text-align: center;
+}
+
+.scale input {
+    display: none;
+}
+
+.scale span {
+    display: inline-block;
+    padding: 10px 14px;
+    border-radius: 50%;
+    background: #eee;
+    cursor: pointer;
+}
+
+.scale input:checked + span {
+    background: #4CAF50;
+    color: white;
+}
+
+/* кнопки */
+.navigation {
+    text-align: center;
+    margin-top: 20px;
+}
+
+button {
+    padding: 10px 20px;
+    margin: 5px;
+    border: none;
+    border-radius: 8px;
+    background: #4CAF50;
+    color: white;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #45a049;
+}
+.question-number {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+body {
+    user-select: none;
+}
+

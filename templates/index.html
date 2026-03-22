@@ -28,7 +28,10 @@
             <h3>{{ topic }}</h3>
             <div class="tests">
                 {% for test in test_list %}
-                    <div class="test-card">{{ test }}</div>
+                    <!-- <div class="test-card">{{ test }}</div> -->
+                     <a href="/test/{{ test.id }}" class="test-card">
+                        {{ test.title }}
+                    </a>
                 {% endfor %}
             </div>
         </div>

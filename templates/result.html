@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Результаты</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/test.css') }}">
+</head>
+<body>
+
+<div class="test-container">
+
+    <h2>Результаты теста</h2>
+
+    {% for r in results %}
+        <div class="question-box">
+
+            <h3>{{ r.name }}</h3>
+
+            <p>
+                <strong>{{ r.score }} / {{ r.max }}</strong>
+            </p>
+
+            {% if r.title %}
+                <p><strong>{{ r.title }}</strong></p>
+            {% endif %}
+
+            {% if r.desc %}
+                <p>{{ r.desc }}</p>
+            {% endif %}
+
+        </div>
+    {% endfor %}
+
+    <div class="navigation">
+        <a href="/">
+            <button>На главную</button>
+        </a>
+    </div>
+
+</div>
+
+</body>
+</html>
