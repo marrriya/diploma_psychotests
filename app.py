@@ -1,6 +1,9 @@
 from flask import Flask, render_template, request, redirect, session
+from flask import jsonify
 import sqlite3
 import json
+from werkzeug.security import generate_password_hash, check_password_hash
+
 
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'  # для сессий
@@ -34,47 +37,97 @@ def index():
 
     return render_template('index.html', username=username, tests=grouped_tests)
 
-# Регистрация
-@app.route('/register', methods=['GET', 'POST'])
+
+@app.route('/register', methods=['POST'])
 def register():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
+    username = request.form['username']
+    name = request.form['name']
+    password = request.form['password']
 
-        conn = sqlite3.connect('database.db')
-        cursor = conn.cursor()
-        try:
-            cursor.execute("INSERT INTO users(username, password) VALUES (?, ?)", (username, password))
-            conn.commit()
-            session['username'] = username
-            conn.close()
-            return redirect('/')
-        except sqlite3.IntegrityError:
-            conn.close()
-            return render_template('register_failed.html')
-    return render_template('register.html')
+    errors = {}
 
+    if len(username) < 3:
+        errors['username'] = "Минимум 3 символа"
 
+    if len(password) < 5:
+        errors['password'] = "Минимум 5 символов"
+
+    if not name:
+        errors['name'] = "Введите имя"
+
+    if errors:
+        # return {"success": False, "errors": errors}
+        return jsonify({"success": False, "errors": errors})
+
+    # hashed_password = generate_password_hash(password)
+    hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
+
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute(
+            "INSERT INTO users(username, name, password) VALUES (?, ?, ?)",
+            (username, name, hashed_password)
+        )
+        conn.commit()
+    except sqlite3.IntegrityError:
+        # return {"success": False, "errors": {"username": "Логин уже занят"}}
+        # return jsonify({"success": False, "errors": errors})
+        return jsonify({"success": False, "errors": {"username": "Логин уже занят"}})
+
+    session['username'] = username
+    return jsonify({"success": True})
+
+@app.route('/profile')
+def profile():
+    if 'username' not in session:
+        return redirect('/')
+
+    return render_template('profile.html', username=session['username'])
 # Вход
-@app.route('/login', methods=['GET', 'POST'])
+# @app.route('/login', methods=['GET', 'POST'])
+# def login():
+#     if request.method == 'POST':
+#         username = request.form['username']
+#         password = request.form['password']
+
+#         conn = sqlite3.connect('database.db')
+#         cursor = conn.cursor()
+#         cursor.execute("SELECT * FROM users WHERE username=? AND password=?", (username, password))
+#         user = cursor.fetchone()
+#         conn.close()
+
+#         if user:
+#             session['username'] = username
+#             return redirect('/')
+#         else:
+#             return render_template('login_failed.html')
+#     return render_template('login.html')
+@app.route('/login', methods=['POST'])
 def login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
+    username = request.form['username']
+    password = request.form['password']
 
-        conn = sqlite3.connect('database.db')
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM users WHERE username=? AND password=?", (username, password))
-        user = cursor.fetchone()
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT password FROM users WHERE username=?", (username,))
+    user = cursor.fetchone()
+    if user is None:
         conn.close()
+        return jsonify({"success": False, "errors": {"username": "Пользователь не найден"}})
+    # if not user:
+    #     # return {"success": False, "errors": {"username": "Пользователь не найден"}}
+    #     return jsonify({"success": False, "errors": {"username": "Пользователь не найден"}})
 
-        if user:
-            session['username'] = username
-            return redirect('/')
-        else:
-            return render_template('login_failed.html')
-    return render_template('login.html')
+    if not check_password_hash(user[0], password):
+        # return {"success": False, "errors": {"password": "Неверный пароль"}}
+        return jsonify({"success": False, "errors": {"password": "Неверный пароль"}})
 
+    session['username'] = username
+    conn.close()
+    return jsonify({"success": True})
 
 # Выход
 @app.route('/logout')
@@ -225,3 +278,4 @@ def submit_test():
 if __name__ == '__main__':
     init_db()
     app.run(debug=True)
+    # app.run(debug=True, port=5050)
