@@ -1,0 +1,114 @@
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background: #F0F0F5;
+    color: #2F3A59;
+}
+
+/* HEADER */
+.header {
+    background: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 30px;
+    border-bottom: 1px solid #ddd;
+}
+
+.logo {
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.nav a {
+    margin: 0 15px;
+    text-decoration: none;
+    color: #2F3A59;
+    padding: 5px 10px;
+    border-bottom: 2px solid transparent;
+    transition: border-color 0.2s;
+}
+
+.nav a.active {
+    border-bottom: 2px solid #4F7CFE;
+}
+
+.nav a:hover {
+    border-bottom: 2px solid #4F7CFE;
+    background: none;
+}
+
+/* USER PANEL */
+.user-panel {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.user-panel button,
+.logout {
+    background: #4F7CFE;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.username {
+    margin-right: 10px;
+}
+main {
+    padding: 30px;
+}
+
+
+.dashboard {
+    display: flex;
+    height: calc(100vh - 80px);
+    padding: 20px;
+    gap: 20px;
+    box-sizing: border-box;
+}
+
+.column {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.column.left {
+    width: 50%;
+}
+
+.column.right {
+    width: 50%;
+}
+
+.chart-card {
+    background: white;
+    border-radius: 12px;
+    padding: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.chart-title {
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #1e90ff;
+    font-size: 14px;
+} 

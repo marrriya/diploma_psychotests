@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Психологический Дашборд</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/portrait.css') }}">
+
+<body>
+<header class="header">
+    <div class="logo">MindScape</div>
+
+    <nav class="nav">
+        <a href="/">Каталог тестов</a>
+        <a href="/completed" class="active">Пройденные тесты</a>
+        <a href="/portrait">Цифровой портрет</a>
+    </nav>
+
+    <div class="user-panel">
+        <span class="username">{{ session.username }}</span>
+        <a href="/logout" class="logout">Выйти</a>
+    </div>
+</header>
+
+<main>
+
+<h2>Цифровой портрет личности</h2>
+
+<div class="dashboard">
+  <div class="column left">
+    <div class="chart-card">
+      <div class="chart-title">Тест Айзенка</div>
+      <canvas id="eysenckChart"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Характерологическая акцентуация личности</div>
+      <canvas id="characterChart"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Тест Стреляу</div>
+      <canvas id="strelyauChart"></canvas>
+    </div>
+  </div>
+
+  <div class="column right">
+    <div class="chart-card">
+      <div class="chart-title">Опросник Леонгарда</div>
+      <canvas id="leongardChart"></canvas>
+    </div>
+    <div class="chart-card" style="flex:0.3;">
+      <div class="chart-title">Экстраверсия и инстроверсия Лутошкина</div>
+      <canvas id="lutoshkinChart"></canvas>
+    </div>
+  </div>
+</div>
+</main>
+<script>
+const optionsBase = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: { legend: { display: false } }
+};
+
+// 1. Айзенк
+new Chart(document.getElementById('eysenckChart'), {
+  type: 'scatter',
+  data: { datasets: [{ data: [{x:14,y:16}], backgroundColor:'red', pointRadius:8, pointHoverRadius:12 }] },
+  options: { 
+    ...optionsBase,
+    scales: {
+      x:{ min:0,max:24, title:{display:true,text:'Интроверт ←→ Экстраверт'}, grid:{ drawTicks:false, color:'#eee' } },
+      y:{ min:0,max:24, title:{display:true,text:'Невротизм'}, grid:{ drawTicks:false, color:'#eee' } }
+    },
+    plugins:{ tooltip:{ callbacks:{ label: ctx=>`Экстраверсия: ${ctx.raw.x}, Невротизм: ${ctx.raw.y}` } } }
+  }
+});
+
+// 2. Характерологический
+new Chart(document.getElementById('characterChart'), {
+  type:'bar',
+  data:{ labels:['Э-I','Эксплозивная','Психастеническая','Шизоид','Истероид','Направленность','Нервно-психическая'], datasets:[{ data:[20,12,38,46,42,33,50], backgroundColor:'#36A2EB' }] },
+  options:{ ...optionsBase, scales:{ y:{ beginAtZero:true, grid:{ color:'#eee' } }, x:{ grid:{ color:'#eee' } } }, plugins:{ tooltip:{ enabled:true } } }
+});
+
+// 3. Стреляу
+new Chart(document.getElementById('strelyauChart'), {
+  type:'bar',
+  data:{ labels:['Возбуждение','Торможение','Подвижность'], datasets:[{ data:[24,56,40], backgroundColor:['#FF6384','#36A2EB','#FFCE56'] }] },
+  options:{ ...optionsBase, scales:{ y:{ beginAtZero:true, max:86, grid:{ color:'#eee' } }, x:{ grid:{ color:'#eee' } } }, plugins:{ tooltip:{ enabled:true } } }
+});
+
+// 4. Леонгард (Radar)
+new Chart(document.getElementById('leongardChart'), {
+  type:'radar',
+  data:{ labels:['Гипертимный','Возбудимый','Эмотивный','Педантичный','Тревожный','Циклотимный','Демонстративный','Неуравновешенный','Дистимный','Экзальтированный'], datasets:[{ data:[3,5,4,12,39,42,12,26,18,3], backgroundColor:'rgba(54,162,235,0.3)', borderColor:'#36A2EB', pointBackgroundColor:'#36A2EB', pointHoverRadius:8 }] },
+  options:{ ...optionsBase, scales:{ r:{ suggestedMin:0, suggestedMax:66, grid:{ color:'#eee' }, pointLabels:{ color:'#333', font:{ size:12 } } } } }
+});
+
+// 5. Лутушкина (горизонтальная)
+const lutoshkinValue = -10;
+new Chart(document.getElementById('lutoshkinChart'), {
+  type:'bar',
+  data:{ labels:[''], datasets:[{ data:[lutoshkinValue], backgroundColor: lutoshkinValue<0 ? '#1e90ff':'#ff8c00' }] },
+  options:{ 
+    ...optionsBase,
+    indexAxis:'y',
+    scales:{
+      x:{ min:-32, max:32, grid:{ display:false, drawTicks:false } },
+      y:{ ticks:{ display:false }, grid:{ display:false } }
+    },
+    plugins:{ tooltip:{ callbacks:{ label:ctx=>`Экстравертированность: ${ctx.parsed.x}` } } }
+  }
+});
+
+// });
+</script>
+
+</body>
+</html>

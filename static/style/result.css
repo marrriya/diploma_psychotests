@@ -1,0 +1,74 @@
+body {
+    font-family: Arial, sans-serif;
+    background: #F0F0F5;
+    color: #2F3A59;
+    margin: 0;
+}
+/* КОНТЕЙНЕР СТРАНИЦЫ */
+.test-container {
+    max-width: 1200px;
+    width: 90%;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+/* ЛЕЙАУТ: СЛЕВА РЕЗУЛЬТАТЫ, СПРАВА ГРАФИК */
+.result-layout {
+    display: flex;
+    gap: 40px;
+    align-items: flex-start;
+}
+
+/* БЛОК С РЕЗУЛЬТАТАМИ */
+.results-block {
+    flex: 1;
+}
+
+/* ГРАФИК */
+.chart {
+    flex: 1;
+    max-width: 6000px;
+}
+
+/* ЧТОБ ГРАФИК НЕ ЛОМАЛСЯ */
+.chart canvas {
+    width: 100% !important;
+    height: auto !important;
+}
+
+/* КАРТОЧКИ */
+.question-box {
+    border: 1px solid #ddd;
+    padding: 20px;
+    border-radius: 12px;
+    background: white;
+    margin-bottom: 20px;
+}
+/* БЛОК С КНОПКАМИ */
+.navigation {
+    margin-top: 30px;
+    text-align: center;
+}
+
+/* КНОПКИ */
+.navigation button {
+    background: #4F7CFE;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 10px;
+    margin: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: 0.2s;
+}
+
+/* ХОВЕР */
+.navigation button:hover {
+    opacity: 0.9;
+}
+
+/* ЧТОБ КНОПКИ НЕ СЖИМАЛИСЬ */
+.navigation form {
+    display: inline-block;
+}

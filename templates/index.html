@@ -6,27 +6,24 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style/main.css') }}">
 </head>
 <body>
-<header>
-    <h1>🧠 Психологические тесты</h1>
-    <!-- <nav>
+<header class="header">
+    <div class="logo">MindScape</div>
+
+    <nav class="nav">
+        <a href="/" class="active">Каталог тестов</a>
+        <a href="/completed">Пройденные тесты</a>
+        <a href="/portrait">Цифровой портрет</a>
+    </nav>
+
+        <div class="user-panel">
         {% if username %}
-            <span>Привет, {{ username }}!</span>
-            <a href="/logout">Выйти</a>
+            <span class="username">Привет, {{ username }}</span>
+            <a href="/logout" class="logout">Выйти</a>
         {% else %}
-            <a href="/login">Войти</a>
-            <a href="/register">Регистрация</a>
+            <button onclick="openModal('login')">Войти</button>
+            <button onclick="openModal('register')">Регистрация</button>
         {% endif %}
-    </nav> -->
-    <!-- <a href="#" onclick="openModal('login')">Войти</a>
-    <a href="#" onclick="openModal('register')">Регистрация</a> -->
-    {% if username %}
-        <span>Привет, {{ username }}</span>
-        <a href="/profile">Профиль</a>
-        <a href="/logout">Выйти</a>
-    {% else %}
-        <a href="#" onclick="openModal('login')">Войти</a>
-        <a href="#" onclick="openModal('register')">Регистрация</a>
-    {% endif %}
+    </div>
 </header>
 
     <main>
@@ -37,8 +34,14 @@
             <div class="category">
                 <h3>{{ topic }}</h3>
                 <div class="tests">
-                    {% for test in test_list %}
+                    <!-- {% for test in test_list %}
                         <a href="/test/{{ test.id }}" class="test-card">
+                            {{ test.title }}
+                        </a>
+                    {% endfor %} -->
+                    {% for test in test_list %}
+                        <a href="/test/{{ test.id }}" 
+                        class="test-card {% if test.id in completed_tests %}completed{% endif %}">
                             {{ test.title }}
                         </a>
                     {% endfor %}
@@ -51,6 +54,7 @@
     </main>
     <div id="authModal" class="modal hidden">
         <div class="modal-content">
+            <button class="close-btn" onclick="closeModal()">✖</button>
 
             <div class="tabs">
                 <input type="radio" name="tab" id="loginTab" checked>
@@ -85,37 +89,72 @@
                 <button type="submit">Зарегистрироваться</button>
             </form>
 
-            <button onclick="closeModal()">✖</button>
+            
 
         </div>
     </div>
     <script>
+        // function openModal(type) {
+        //     document.getElementById('authModal').classList.remove('hidden')
+
+        //     if (type === 'login') {
+        //         document.getElementById('loginTab').checked = true
+        //         switchForm()
+        //     } else {
+        //         document.getElementById('registerTab').checked = true
+        //         switchForm()
+        //     }
+        // }
+
+        // function closeModal() {
+        //     document.getElementById('authModal').classList.add('hidden')
+        //     document.getElementById('authModal').addEventListener('click', function(e) {
+        //         if (e.target === this) {
+        //             closeModal();
+        //         });
+        // }
+        
+        // document.getElementById('loginTab').addEventListener('change', switchForm)
+        // document.getElementById('registerTab').addEventListener('change', switchForm)
+
+        // function switchForm() {
+        //     const isLogin = document.getElementById('loginTab').checked
+
+        //     document.getElementById('loginForm').classList.toggle('hidden', !isLogin)
+        //     document.getElementById('registerForm').classList.toggle('hidden', isLogin)
+        // }
         function openModal(type) {
-            document.getElementById('authModal').classList.remove('hidden')
+    const modal = document.getElementById('authModal');
+    modal.classList.remove('hidden');
 
-            if (type === 'login') {
-                document.getElementById('loginTab').checked = true
-                switchForm()
-            } else {
-                document.getElementById('registerTab').checked = true
-                switchForm()
-            }
-        }
+    if(type === 'login') {
+        document.getElementById('loginTab').checked = true;
+    } else {
+        document.getElementById('registerTab').checked = true;
+    }
 
-        function closeModal() {
-            document.getElementById('authModal').classList.add('hidden')
-        }
+    switchForm();
+}
 
-        document.getElementById('loginTab').addEventListener('change', switchForm)
-        document.getElementById('registerTab').addEventListener('change', switchForm)
+function closeModal() {
+    document.getElementById('authModal').classList.add('hidden');
+}
 
-        function switchForm() {
-            const isLogin = document.getElementById('loginTab').checked
+// переключение форм
+function switchForm() {
+    const isLogin = document.getElementById('loginTab').checked;
+    document.getElementById('loginForm').classList.toggle('hidden', !isLogin);
+    document.getElementById('registerForm').classList.toggle('hidden', isLogin);
+}
 
-            document.getElementById('loginForm').classList.toggle('hidden', !isLogin)
-            document.getElementById('registerForm').classList.toggle('hidden', isLogin)
-        }
+// слушаем изменение вкладок
+document.getElementById('loginTab').addEventListener('change', switchForm);
+document.getElementById('registerTab').addEventListener('change', switchForm);
 
+// закрытие при клике вне модалки
+document.getElementById('authModal').addEventListener('click', function(e) {
+    if(e.target === this) closeModal();
+});
         // LOGIN
         document.getElementById('loginForm').onsubmit = async (e) => {
             e.preventDefault()
@@ -172,17 +211,94 @@
         function clearErrors() {
                 document.querySelectorAll('.error').forEach(e => e.innerText = "")
             }
-            // let res = await fetch('/register', {
-            //     method: 'POST',
-            //     body: formData
-            // })
 
-            // if (!res.ok) {
-            //     console.error("Ошибка сервера")
-            //     return
-            // }
-
-            // let data = await res.json()
     </script>
+//     <script>
+// document.addEventListener("DOMContentLoaded", function () {
+
+//     function openModal(type) {
+//         document.getElementById('authModal').classList.remove('hidden')
+
+//         if (type === 'login') {
+//             document.getElementById('loginTab').checked = true
+//         } else {
+//             document.getElementById('registerTab').checked = true
+//         }
+
+//         switchForm()
+//     }
+
+//     function closeModal() {
+//         document.getElementById('authModal').classList.add('hidden')
+//     }
+
+//     function switchForm() {
+//         const isLogin = document.getElementById('loginTab').checked
+
+//         document.getElementById('loginForm').classList.toggle('hidden', !isLogin)
+//         document.getElementById('registerForm').classList.toggle('hidden', isLogin)
+//     }
+
+//     // делаем функции глобальными (ВАЖНО для onclick)
+//     window.openModal = openModal
+//     window.closeModal = closeModal
+
+//     document.getElementById('loginTab').addEventListener('change', switchForm)
+//     document.getElementById('registerTab').addEventListener('change', switchForm)
+
+//     // LOGIN
+//     document.getElementById('loginForm').onsubmit = async (e) => {
+//         e.preventDefault()
+
+//         let formData = new FormData(e.target)
+
+//         let res = await fetch('/login', {
+//             method: 'POST',
+//             body: formData
+//         })
+
+//         let data = await res.json()
+
+//         clearErrors()
+
+//         if (data.success) {
+//             location.reload()
+//         } else {
+//             for (let key in data.errors) {
+//                 document.getElementById(`login_${key}_error`).innerText = data.errors[key]
+//             }
+//         }
+//     }
+
+//     // REGISTER
+//     document.getElementById('registerForm').onsubmit = async (e) => {
+//         e.preventDefault()
+
+//         let formData = new FormData(e.target)
+
+//         let res = await fetch('/register', {
+//             method: 'POST',
+//             body: formData
+//         })
+
+//         let data = await res.json()
+
+//         clearErrors()
+
+//         if (data.success) {
+//             location.reload()
+//         } else {
+//             for (let key in data.errors) {
+//                 document.getElementById(`reg_${key}_error`).innerText = data.errors[key]
+//             }
+//         }
+//     }
+
+//     function clearErrors() {
+//         document.querySelectorAll('.error').forEach(e => e.innerText = "")
+//     }
+
+// });
+// </script> 
 </body>
 </html>

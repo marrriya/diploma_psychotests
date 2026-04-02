@@ -6,8 +6,25 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style/test.css') }}">
 </head>
 <body>
+    <div class="start-screen" id="startScreen">
+    <h2>{{ title }}</h2>
+    <p>{{ description }}</p>
+    <button onclick="startTest()">Начать тест</button>
+</div>
 
-<div class="test-container">
+<div class="test-container hidden" id="testContainer">
+    <div class="test-header">
+    <h2>{{ title }}</h2>
+
+    <div class="progress-info">
+        <span id="progressText">1 / {{ questions|length }}</span>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+    </div>
+
+    <button class="exit-btn" onclick="exitTest()">Завершить тест</button>
+</div>
 
     <form id="testForm" method="post" action="/submit_test">
 
@@ -69,9 +86,21 @@
 </div>
 
 <script>
+    function startTest() {
+    document.getElementById('startScreen').style.display = 'none';
+    document.getElementById('testContainer').classList.remove('hidden');
+}
+
+function exitTest() {
+    if (confirm("Вы уверены, что хотите завершить тест?")) {
+        localStorage.removeItem('testAnswers');
+        window.location.href = "/";
+    }
+}
 let current = 0;
 const questions = document.querySelectorAll('.question');
 let answers = JSON.parse(localStorage.getItem('testAnswers')) || {};
+
 
 
 function showQuestion(index) {
@@ -80,11 +109,17 @@ function showQuestion(index) {
 
     updateButtons();
     restoreAnswer();
-    // document.querySelector('.navigation button[onclick="prevQuestion()"]').style.display = index === 0 ? 'none' : 'inline-block';
-    // document.querySelector('.navigation button[onclick="nextQuestion()"]').style.display = index === questions.length - 1 ? 'none' : 'inline-block';
-    // document.getElementById('submitBtn').style.display = index === questions.length - 1 ? 'inline-block' : 'none';
+    updateProgress();
 }
+function updateProgress() {
+    const total = questions.length;
+    const currentNum = current + 1;
 
+    document.getElementById('progressText').innerText = `${currentNum} / ${total}`;
+
+    const percent = (currentNum / total) * 100;
+    document.getElementById('progressFill').style.width = percent + "%";
+}
 function getCurrentQuestionId(){
     return questions[current].querySelector('input').name;
 }
@@ -153,7 +188,6 @@ document.getElementById('testForm').addEventListener('submit', function(e) {
 
     saveAnswer();
 
-    // очищаем старые hidden
     document.querySelectorAll('.hidden-answer').forEach(el => el.remove());
 
     for (let key in answers) {
@@ -169,8 +203,13 @@ document.getElementById('testForm').addEventListener('submit', function(e) {
 
     this.submit();
 });
+function exitTest() {
+    if (confirm("Вы уверены? Прогресс будет удалён")) {
+        localStorage.removeItem('testAnswers');
+        window.location.href = "/cancel_test";
+    }
+}
 
-// старт
 showQuestion(current);
 </script>
 

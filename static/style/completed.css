@@ -1,0 +1,118 @@
+/* 
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background: #F0F0F5;
+    color: #2F3A59;
+}
+
+/* HEADER */
+.header {
+    background: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 30px;
+    border-bottom: 1px solid #ddd;
+}
+
+.logo {
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.nav a {
+    margin: 0 15px;
+    text-decoration: none;
+    color: #2F3A59;
+    padding: 5px 10px;
+    border-bottom: 2px solid transparent;
+    transition: border-color 0.2s;
+}
+
+.nav a.active {
+    border-bottom: 2px solid #4F7CFE;
+}
+
+.nav a:hover {
+    border-bottom: 2px solid #4F7CFE;
+    background: none;
+}
+
+/* USER PANEL */
+.user-panel {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.user-panel button,
+.logout {
+    background: #4F7CFE;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.username {
+    margin-right: 10px;
+} */
+
+/* КОНТЕЙНЕР СТРАНИЦЫ */
+main {
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+/* СПИСОК ТЕСТОВ */
+.tests {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* КАРТОЧКА */
+.test-card {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 15px 20px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* НАЗВАНИЕ */
+.test-title {
+    font-size: 16px;
+    font-weight: 500;
+    color: #2F3A59;
+}
+
+/* КНОПКИ */
+.card-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+/* КНОПКА */
+.btn {
+    text-decoration: none;
+    border: 1px solid #4F7CFE;
+    color: #4F7CFE;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    transition: 0.2s;
+}
+
+/* ХОВЕР */
+.btn:hover {
+    background: #4F7CFE;
+    color: white;
+}
