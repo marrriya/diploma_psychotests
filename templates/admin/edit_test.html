@@ -1,0 +1,10 @@
+{% extends 'admin/base_admin.html' %}
+{% block content %}
+<h2>Редактировать тест</h2>
+<form method="post">
+<input name="title" value="{{ test.title }}"><br>
+<input name="topic" value="{{ test.topic }}"><br>
+<textarea name="description">{{ test.description }}</textarea><br>
+<button>Сохранить</button>
+</form>
+{% endblock %}

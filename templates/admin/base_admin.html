@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin</title>
+</head>
+<body>
+  <div style="width:200px; float:left;">
+    <h3>Админка</h3>
+    <a href="/admin/users">Пользователи</a><br>
+    <a href="/admin/tests">Тесты</a>
+  </div>
+
+  <div style="margin-left:220px;">
+    {% with messages = get_flashed_messages() %}
+      {% for msg in messages %}
+        <p>{{ msg }}</p>
+      {% endfor %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </div>
+</body>
+</html>

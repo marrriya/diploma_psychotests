@@ -12,8 +12,8 @@
 
     <nav class="nav">
         <a href="/">Каталог тестов</a>
-        <a href="/completed" class="active">Пройденные тесты</a>
-        <a href="/portrait">Цифровой портрет</a>
+        <a href="/completed">Пройденные тесты</a>
+        <a href="/portrait" class="active">Цифровой портрет</a>
     </nav>
 
     <div class="user-panel">
@@ -64,7 +64,7 @@ const optionsBase = {
 // 1. Айзенк
 new Chart(document.getElementById('eysenckChart'), {
   type: 'scatter',
-  data: { datasets: [{ data: [{x:14,y:16}], backgroundColor:'red', pointRadius:8, pointHoverRadius:12 }] },
+  data: { datasets: [{ data: [{x:9,y:1}], backgroundColor:'red', pointRadius:8, pointHoverRadius:12 }] },
   options: { 
     ...optionsBase,
     scales: {
@@ -92,8 +92,8 @@ new Chart(document.getElementById('strelyauChart'), {
 // 4. Леонгард (Radar)
 new Chart(document.getElementById('leongardChart'), {
   type:'radar',
-  data:{ labels:['Гипертимный','Возбудимый','Эмотивный','Педантичный','Тревожный','Циклотимный','Демонстративный','Неуравновешенный','Дистимный','Экзальтированный'], datasets:[{ data:[3,5,4,12,39,42,12,26,18,3], backgroundColor:'rgba(54,162,235,0.3)', borderColor:'#36A2EB', pointBackgroundColor:'#36A2EB', pointHoverRadius:8 }] },
-  options:{ ...optionsBase, scales:{ r:{ suggestedMin:0, suggestedMax:66, grid:{ color:'#eee' }, pointLabels:{ color:'#333', font:{ size:12 } } } } }
+  data:{ labels:['Гипертимный','Возбудимый','Эмотивный','Педантичный','Тревожный','Циклотимный','Демонстративный','Неуравновешенный','Дистимный','Экзальтированный'], datasets:[{ data:[0,4,1,1,1,0,2,0,3,0], backgroundColor:'rgba(54,162,235,0.3)', borderColor:'#36A2EB', pointBackgroundColor:'#36A2EB', pointHoverRadius:8 }] },
+  options:{ ...optionsBase, scales:{ r:{ suggestedMin:0,  grid:{ color:'#eee' }, pointLabels:{ color:'#333', font:{ size:12 } } } } }
 });
 
 // 5. Лутушкина (горизонтальная)

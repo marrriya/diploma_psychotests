@@ -1,12 +1,109 @@
-from flask import Flask, render_template, request, redirect, session
+from flask import Flask, render_template, request, redirect, session, abort, flash
+import sqlite3
+
 from flask import jsonify
 import sqlite3
 import json
 from werkzeug.security import generate_password_hash, check_password_hash
 
-
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'  # для сессий
+
+
+###. АДМИНКА. ###
+
+def get_db():
+    conn = sqlite3.connect('database.db')
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+def is_admin():
+    print("CHECK ADMIN:", session)
+    return session.get('role') == 'admin'
+
+
+
+# ===================== ADMIN: USERS =====================
+@app.route('/admin/users')
+def admin_users():
+    if not is_admin(): abort(403)
+    db = get_db()
+    users = db.execute("SELECT * FROM users").fetchall()
+    return render_template('admin/users.html', users=users)
+
+
+@app.route('/admin/delete_user/<int:id>')
+def delete_user(id):
+    if not is_admin(): abort(403)
+    db = get_db()
+    db.execute("DELETE FROM users WHERE id=?", (id,))
+    db.commit()
+    flash('Пользователь удален')
+    return redirect('/admin/users')
+
+# ===================== ADMIN: TESTS =====================
+@app.route('/admin/tests')
+def admin_tests():
+    if not is_admin(): abort(403)
+    db = get_db()
+    tests = db.execute("SELECT * FROM tests").fetchall()
+    return render_template('admin/tests.html', tests=tests)
+
+
+@app.route('/admin/tests/create', methods=['GET', 'POST'])
+def create_test():
+    if not is_admin(): abort(403)
+
+    if request.method == 'POST':
+        title = request.form['title']
+        topic = request.form['topic']
+        description = request.form['description']
+
+        db = get_db()
+        db.execute(
+            "INSERT INTO tests (title, topic, description) VALUES (?, ?, ?)",
+            (title, topic, description)
+        )
+        db.commit()
+        flash('Тест создан')
+        return redirect('/admin/tests')
+
+    return render_template('admin/create_test.html')
+
+@app.route('/admin/tests/edit/<int:id>', methods=['GET', 'POST'])
+def edit_test(id):
+    if not is_admin(): abort(403)
+    db = get_db()
+
+    if request.method == 'POST':
+        title = request.form['title']
+        topic = request.form['topic']
+        description = request.form['description']
+
+        db.execute(
+            "UPDATE tests SET title=?, topic=?, description=? WHERE id=?",
+            (title, topic, description, id)
+        )
+        db.commit()
+        flash('Тест обновлен')
+        return redirect('/admin/tests')
+
+    test = db.execute("SELECT * FROM tests WHERE id=?", (id,)).fetchone()
+    return render_template('admin/edit_test.html', test=test)
+
+@app.route('/admin/tests/delete/<int:id>')
+def delete_test(id):
+    if not is_admin(): abort(403)
+    db = get_db()
+    db.execute("DELETE FROM tests WHERE id=?", (id,))
+    db.commit()
+    flash('Тест удален')
+    return redirect('/admin/tests')
+
+
+
+
 
 # Инициализация БД
 def init_db():
@@ -25,7 +122,7 @@ def index():
 
     # получаем все тесты
     cursor.execute("""
-        SELECT id, topic, title 
+        SELECT id, topic, title, description
         FROM tests 
         WHERE is_active = 1 
         ORDER BY id
@@ -55,13 +152,14 @@ def index():
     # группировка + добавление completed
     grouped_tests = {}
 
-    for test_id, topic, title in rows:
+    for test_id, topic, title, description in rows:
         if topic not in grouped_tests:
             grouped_tests[topic] = []
 
         grouped_tests[topic].append({
             'id': test_id,
             'title': title,
+            'description': description,
             'completed': test_id in completed_tests
         })
 
@@ -72,6 +170,10 @@ def index():
         completed_tests=completed_tests
     )
   
+@app.route('/auth')
+def auth_page():
+    return render_template('auth.html')
+
 
 @app.route('/register', methods=['POST'])
 def register():
@@ -129,30 +231,56 @@ def login():
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
 
-    cursor.execute("SELECT password FROM users WHERE username=?", (username,))
+    cursor.execute("""
+        SELECT id, password, role 
+        FROM users 
+        WHERE username=?
+    """, (username,))
+
     user = cursor.fetchone()
+
     if user is None:
         conn.close()
         return jsonify({"success": False, "errors": {"username": "Пользователь не найден"}})
-    # if not user:
-    #     # return {"success": False, "errors": {"username": "Пользователь не найден"}}
-    #     return jsonify({"success": False, "errors": {"username": "Пользователь не найден"}})
 
-    if not check_password_hash(user[0], password):
-        # return {"success": False, "errors": {"password": "Неверный пароль"}}
+    user_id, hashed_password, role = user
+
+    if not check_password_hash(hashed_password, password):
+        conn.close()
         return jsonify({"success": False, "errors": {"password": "Неверный пароль"}})
 
-    session['username'] = username
-    conn.close()
-    return jsonify({"success": True})
 
-# Выход
+    session.clear()
+    session['username'] = username
+    session['user_id'] = user_id
+    session['role'] = role
+
+    print("LOGIN SESSION:", session)  # для проверки
+
+    conn.close()
+    # return jsonify({"success": True})
+    # if role == 'admin':
+    #     return jsonify({"success": True, "redirect": "/admin/users"})
+    # else:
+    #     return jsonify({"success": True, "redirect": "/"})
+    if role == 'admin':
+        return jsonify({"success": True, "redirect": "/admin/users"})
+    elif role == 'teacher':
+        return jsonify({"success": True, "redirect": "/teacher"})
+    else:
+        return jsonify({"success": True, "redirect": "/"})
+
 @app.route('/logout')
 def logout():
-    session.pop('username', None)
+    session.clear()
     return redirect('/')
 
-
+@app.route('/teacher')
+def teacher():
+    if 'role' not in session or session['role'] != 'teacher':
+        return redirect('/')
+    
+    return "Страница преподавателя (пока заглушка)"
 # Tест
 
 @app.route('/test/<int:test_id>')
@@ -172,20 +300,7 @@ def test_page(test_id):
         if user:
             user_id = user[0]
 
-    
 
-    # user_id
-    # cursor.execute("SELECT id FROM users WHERE username = ?", (session['username'],))
-    # user_id = cursor.fetchone()[0]
-    # username = session.get('username')
-    # user_id = None
-
-    # if username:
-    #     cursor.execute("SELECT id FROM users WHERE username = ?", (username,))
-    #     user = cursor.fetchone()
-
-    #     if user:
-    #         user_id = user[0]
 
     # инфа о тесте
     cursor.execute("""
@@ -210,22 +325,7 @@ def test_page(test_id):
     if user_id and attempt and not retake_mode:
         attempt_id = attempt[0]
 
-        # cursor.execute("""
-        #     SELECT s.name, ur.score, s.max_score
-        #     FROM user_results ur
-        #     JOIN scales s ON ur.scale_id = s.id
-        #     WHERE ur.attempt_id = ?
-        # """, (attempt_id,))
-
-        # rows = cursor.fetchall()
-
-        # results = []
-        # for name, score, max_score in rows:
-        #     results.append({
-        #         'name': name,
-        #         'score': score,
-        #         'max': max_score
-        #     })
+     
         cursor.execute("""
             SELECT s.name, ur.score, s.max_score, si.title, si.description
             FROM user_results ur
@@ -311,8 +411,7 @@ def cancel_test():
 
 @app.route('/submit_test', methods=['POST'])
 def submit_test():
-    # if 'username' not in session:
-    #     return redirect('/login')
+    
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
     username = session.get('username')
@@ -327,8 +426,6 @@ def submit_test():
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
 
-    # cursor.execute("SELECT id FROM users WHERE username = ?", (session['username'],))
-    # user_id = cursor.fetchone()[0]
 
     question_ids = [key.split('_')[1] for key in request.form if key.startswith('q_')]
 
@@ -337,13 +434,6 @@ def submit_test():
     """, (question_ids[0],))
     test_id = cursor.fetchone()[0]
 
-
-    # cursor.execute("""
-    #     INSERT INTO user_attempts (user_id, test_id)
-    #     VALUES (?, ?)
-    # """, (user_id, test_id))
-
-    # attempt_id = cursor.lastrowid
     attempt_id = None
 
     if user_id:
@@ -360,10 +450,6 @@ def submit_test():
             question_id = int(key.split('_')[1])
             answer_id = int(request.form[key])
 
-            # cursor.execute("""
-            #     INSERT INTO user_answers (attempt_id, question_id, ans_opt_id)
-            #     VALUES (?, ?, ?)
-            # """, (attempt_id, question_id, answer_id))
             if attempt_id:
                 cursor.execute("""
                     INSERT INTO user_answers (attempt_id, question_id, ans_opt_id)
@@ -506,33 +592,6 @@ def completed_tests_page():
     return render_template('completed.html', tests=tests)
 
 
-# @app.route('/portrait')
-# def portrait():
-#     if 'username' not in session:
-#         return redirect('/')
-
-#     conn = sqlite3.connect('database.db')
-#     cursor = conn.cursor()
-
-#     cursor.execute("SELECT id FROM users WHERE username = ?", (session['username'],))
-#     user_id = cursor.fetchone()[0]
-
-#     # берем последние результаты пользователя
-#     cursor.execute("""
-#         SELECT t.title, s.name, ur.score
-#         FROM user_results ur
-#         JOIN scales s ON ur.scale_id = s.id
-#         JOIN user_attempts ua ON ur.attempt_id = ua.id
-#         JOIN tests t ON ua.test_id = t.id
-#         WHERE ur.user_id = ?
-#         ORDER BY ua.id DESC
-#     """, (user_id,))
-
-#     results = cursor.fetchall()
-
-#     conn.close()
-
-#     return render_template('portrait.html', results=results)
 @app.route('/portrait')
 def portrait():
     import sqlite3
@@ -581,6 +640,33 @@ def portrait():
     conn.close()
 
     return render_template("portrait.html", charts=charts)
+
+
+
+def is_admin():
+    return True
+
+# @app.route('/admin')
+# # @login_required
+# def admin_panel():
+#     if current_user.role != 'admin' and current_user.role != 'superadmin':
+#         abort(403)
+
+#     users = db.execute("SELECT * FROM users").fetchall()
+#     tests = db.execute("SELECT * FROM tests").fetchall()
+
+#     results = db.execute("""
+#         SELECT u.username, t.title as test_title, s.name as scale_name, ur.score
+#         FROM user_results ur
+#         JOIN users u ON ur.user_id = u.id
+#         JOIN scales s ON ur.scale_id = s.id
+#         JOIN tests t ON s.test_id = t.id
+#     """).fetchall()
+
+#     return render_template('admin.html', users=users, tests=tests, results=results)
+
+
+
 if __name__ == '__main__':
     init_db()
     app.run(debug=True)

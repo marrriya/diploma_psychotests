@@ -1,0 +1,181 @@
+/* static/admin.css */
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f6f9;
+    margin: 0;
+}
+
+.container {
+    width: 90%;
+    margin: 30px auto;
+}
+
+h1 {
+    text-align: center;
+}
+
+h2 {
+    margin-top: 40px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    background: white;
+}
+
+th, td {
+    padding: 10px;
+    border: 1px solid #ddd;
+    text-align: center;
+}
+
+th {
+    background: #2c3e50;
+    color: white;
+}
+
+tr:nth-child(even) {
+    background: #f2f2f2;
+}
+
+tr:hover {
+    background: #e6f2ff;
+}
+
+/* Flask route (app.py) */
+
+@app.route('/admin')
+@login_required
+def admin_panel():
+    if current_user.role != 'admin' and current_user.role != 'superadmin':
+        abort(403)
+
+    users = db.execute("SELECT * FROM users").fetchall()
+    tests = db.execute("SELECT * FROM tests").fetchall()
+
+    results = db.execute("""
+        SELECT u.username, t.title as test_title, s.name as scale_name, ur.score
+        FROM user_results ur
+        JOIN users u ON ur.user_id = u.id
+        JOIN scales s ON ur.scale_id = s.id
+        JOIN tests t ON s.test_id = t.id
+    """).fetchall()
+
+    return render_template('admin.html', users=users, tests=tests, results=results)
+<!-- admin.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Админ-панель</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Админ-панель</h1>
+
+        <h2>Пользователи</h2>
+        <table>
+            <tr>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Имя</th>
+                <th>Роль</th>
+            </tr>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.id }}</td>
+                <td>{{ user.username }}</td>
+                <td>{{ user.name }}</td>
+                <td>{{ user.role }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        <h2>Тесты</h2>
+        <table>
+            <tr>
+                <th>ID</th>
+                <th>Название</th>
+                <th>Тема</th>
+                <th>Активен</th>
+            </tr>
+            {% for test in tests %}
+            <tr>
+                <td>{{ test.id }}</td>
+                <td>{{ test.title }}</td>
+                <td>{{ test.topic }}</td>
+                <td>{{ test.is_active }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        <h2>Результаты пользователей</h2>
+        <table>
+            <tr>
+                <th>Пользователь</th>
+                <th>Тест</th>
+                <th>Шкала</th>
+                <th>Баллы</th>
+            </tr>
+            {% for r in results %}
+            <tr>
+                <td>{{ r.username }}</td>
+                <td>{{ r.test_title }}</td>
+                <td>{{ r.scale_name }}</td>
+                <td>{{ r.score }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+</body>
+</html>
+
+/* static/admin.css */
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f6f9;
+    margin: 0;
+}
+
+.container {
+    width: 90%;
+    margin: 30px auto;
+}
+
+h1 {
+    text-align: center;
+}
+
+h2 {
+    margin-top: 40px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    background: white;
+}
+
+th, td {
+    padding: 10px;
+    border: 1px solid #ddd;
+    text-align: center;
+}
+
+th {
+    background: #2c3e50;
+    color: white;
+}
+
+tr:nth-child(even) {
+    background: #f2f2f2;
+}
+
+tr:hover {
+    background: #e6f2ff;
+}
+

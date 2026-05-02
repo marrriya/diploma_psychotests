@@ -20,9 +20,9 @@
             <span class="username">Привет, {{ username }}</span>
             <a href="/logout" class="logout">Выйти</a>
         {% else %}
-            <button onclick="openModal('login')">Войти</button>
-            <button onclick="openModal('register')">Регистрация</button>
+            <a href="/auth">Войти</a>
         {% endif %}
+        
     </div>
 </header>
 
@@ -34,15 +34,13 @@
             <div class="category">
                 <h3>{{ topic }}</h3>
                 <div class="tests">
-                    <!-- {% for test in test_list %}
-                        <a href="/test/{{ test.id }}" class="test-card">
-                            {{ test.title }}
-                        </a>
-                    {% endfor %} -->
                     {% for test in test_list %}
                         <a href="/test/{{ test.id }}" 
                         class="test-card {% if test.id in completed_tests %}completed{% endif %}">
-                            {{ test.title }}
+                            
+                            <div class="test-title">{{ test.title }}</div>
+                            <div class="test-desc">{{ test.description }}</div>
+
                         </a>
                     {% endfor %}
                 </div>
@@ -52,77 +50,9 @@
         </div>
 
     </main>
-    <div id="authModal" class="modal hidden">
-        <div class="modal-content">
-            <button class="close-btn" onclick="closeModal()">✖</button>
-
-            <div class="tabs">
-                <input type="radio" name="tab" id="loginTab" checked>
-                <label for="loginTab">Вход</label>
-
-                <input type="radio" name="tab" id="registerTab">
-                <label for="registerTab">Регистрация</label>
-            </div>
-
-            <!-- Вход -->
-            <form id="loginForm" class="form">
-                <input type="text" name="username" placeholder="Логин">
-                <div class="error" id="login_username_error"></div>
-
-                <input type="password" name="password" placeholder="Пароль">
-                <div class="error" id="login_password_error"></div>
-
-                <button type="submit">Войти</button>
-            </form>
-
-            <!-- Регистрация -->
-            <form id="registerForm" class="form hidden">
-                <input type="text" name="username" placeholder="Логин">
-                <div class="error" id="reg_username_error"></div>
-
-                <input type="text" name="name" placeholder="Имя">
-                <div class="error" id="reg_name_error"></div>
-
-                <input type="password" name="password" placeholder="Пароль">
-                <div class="error" id="reg_password_error"></div>
-
-                <button type="submit">Зарегистрироваться</button>
-            </form>
-
-            
-
-        </div>
-    </div>
+    
     <script>
-        // function openModal(type) {
-        //     document.getElementById('authModal').classList.remove('hidden')
-
-        //     if (type === 'login') {
-        //         document.getElementById('loginTab').checked = true
-        //         switchForm()
-        //     } else {
-        //         document.getElementById('registerTab').checked = true
-        //         switchForm()
-        //     }
-        // }
-
-        // function closeModal() {
-        //     document.getElementById('authModal').classList.add('hidden')
-        //     document.getElementById('authModal').addEventListener('click', function(e) {
-        //         if (e.target === this) {
-        //             closeModal();
-        //         });
-        // }
-        
-        // document.getElementById('loginTab').addEventListener('change', switchForm)
-        // document.getElementById('registerTab').addEventListener('change', switchForm)
-
-        // function switchForm() {
-        //     const isLogin = document.getElementById('loginTab').checked
-
-        //     document.getElementById('loginForm').classList.toggle('hidden', !isLogin)
-        //     document.getElementById('registerForm').classList.toggle('hidden', isLogin)
-        // }
+       
         function openModal(type) {
     const modal = document.getElementById('authModal');
     modal.classList.remove('hidden');
@@ -170,8 +100,11 @@ document.getElementById('authModal').addEventListener('click', function(e) {
 
             clearErrors()
 
+            // if (data.success) {
+            //     location.reload()
             if (data.success) {
-                location.reload()
+    window.location.href = data.redirect
+}
                 // window.location.href = "/profile"
 
             } else {
@@ -196,8 +129,11 @@ document.getElementById('authModal').addEventListener('click', function(e) {
 
             clearErrors()
 
+            // if (data.success) {
+            //     location.reload()
             if (data.success) {
-                location.reload()
+    window.location.href = data.redirect
+}
                 // window.location.href = "/profile"
                 
 
@@ -213,92 +149,6 @@ document.getElementById('authModal').addEventListener('click', function(e) {
             }
 
     </script>
-//     <script>
-// document.addEventListener("DOMContentLoaded", function () {
 
-//     function openModal(type) {
-//         document.getElementById('authModal').classList.remove('hidden')
-
-//         if (type === 'login') {
-//             document.getElementById('loginTab').checked = true
-//         } else {
-//             document.getElementById('registerTab').checked = true
-//         }
-
-//         switchForm()
-//     }
-
-//     function closeModal() {
-//         document.getElementById('authModal').classList.add('hidden')
-//     }
-
-//     function switchForm() {
-//         const isLogin = document.getElementById('loginTab').checked
-
-//         document.getElementById('loginForm').classList.toggle('hidden', !isLogin)
-//         document.getElementById('registerForm').classList.toggle('hidden', isLogin)
-//     }
-
-//     // делаем функции глобальными (ВАЖНО для onclick)
-//     window.openModal = openModal
-//     window.closeModal = closeModal
-
-//     document.getElementById('loginTab').addEventListener('change', switchForm)
-//     document.getElementById('registerTab').addEventListener('change', switchForm)
-
-//     // LOGIN
-//     document.getElementById('loginForm').onsubmit = async (e) => {
-//         e.preventDefault()
-
-//         let formData = new FormData(e.target)
-
-//         let res = await fetch('/login', {
-//             method: 'POST',
-//             body: formData
-//         })
-
-//         let data = await res.json()
-
-//         clearErrors()
-
-//         if (data.success) {
-//             location.reload()
-//         } else {
-//             for (let key in data.errors) {
-//                 document.getElementById(`login_${key}_error`).innerText = data.errors[key]
-//             }
-//         }
-//     }
-
-//     // REGISTER
-//     document.getElementById('registerForm').onsubmit = async (e) => {
-//         e.preventDefault()
-
-//         let formData = new FormData(e.target)
-
-//         let res = await fetch('/register', {
-//             method: 'POST',
-//             body: formData
-//         })
-
-//         let data = await res.json()
-
-//         clearErrors()
-
-//         if (data.success) {
-//             location.reload()
-//         } else {
-//             for (let key in data.errors) {
-//                 document.getElementById(`reg_${key}_error`).innerText = data.errors[key]
-//             }
-//         }
-//     }
-
-//     function clearErrors() {
-//         document.querySelectorAll('.error').forEach(e => e.innerText = "")
-//     }
-
-// });
-// </script> 
 </body>
 </html>

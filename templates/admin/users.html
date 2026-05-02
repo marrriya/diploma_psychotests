@@ -1,0 +1,17 @@
+{% extends 'admin/base_admin.html' %}
+{% block content %}
+<h2>Пользователи</h2>
+<table>
+<tr><th>ID</th><th>Username</th><th>Name</th><th></th></tr>
+{% for user in users %}
+<tr>
+<td>{{ user.id }}</td>
+<td>{{ user.username }}</td>
+<td>{{ user.name }}</td>
+<td>
+<a href="/admin/delete_user/{{ user.id }}" onclick="return confirm('Удалить?')">Удалить</a>
+</td>
+</tr>
+{% endfor %}
+</table>
+{% endblock %}

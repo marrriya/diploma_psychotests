@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Авторизация</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/auth.css') }}">
+</head>
+<body>
+
+<div class="auth-container">
+
+    <div class="tabs">
+        <button id="loginTab">Вход</button>
+        <button id="registerTab">Регистрация</button>
+    </div>
+
+    <!-- LOGIN -->
+    <form id="loginForm" class="form">
+        <input type="text" name="username" placeholder="Логин">
+        <div class="error" id="login_username_error"></div>
+
+        <input type="password" name="password" placeholder="Пароль">
+        <div class="error" id="login_password_error"></div>
+
+        <button type="submit">Войти</button>
+    </form>
+
+    <!-- REGISTER -->
+    <form id="registerForm" class="form">
+        <input type="text" name="username" placeholder="Логин">
+        <div class="error" id="reg_username_error"></div>
+
+        <input type="text" name="name" placeholder="Имя">
+        <div class="error" id="reg_name_error"></div>
+
+        <input type="password" name="password" placeholder="Пароль">
+        <div class="error" id="reg_password_error"></div>
+
+        <button type="submit">Зарегистрироваться</button>
+    </form>
+
+</div>
+
+<script>
+    const loginForm = document.getElementById('loginForm')
+const registerForm = document.getElementById('registerForm')
+
+const loginTab = document.getElementById('loginTab')
+const registerTab = document.getElementById('registerTab')
+
+function showForm(type) {
+    loginForm.classList.remove('active')
+    registerForm.classList.remove('active')
+
+    if (type === 'register') {
+        registerForm.classList.add('active')
+    } else {
+        loginForm.classList.add('active')
+    }
+}
+
+// переключение по кнопкам
+loginTab.onclick = () => showForm('login')
+registerTab.onclick = () => showForm('register')
+
+// при загрузке страницы
+window.onload = () => {
+    const params = new URLSearchParams(window.location.search)
+    const mode = params.get('mode')
+
+    if (mode === 'register') {
+        showForm('register')
+    } else {
+        showForm('login')
+    }
+}
+loginForm.onsubmit = async (e) => {
+    e.preventDefault()
+
+    let formData = new FormData(loginForm)
+
+    let res = await fetch('/login', {
+        method: 'POST',
+        body: formData
+    })
+
+    let data = await res.json()
+
+    clearErrors()
+
+    if (data.success) {
+        window.location.href = data.redirect
+    } else {
+        for (let key in data.errors) {
+            document.getElementById(`login_${key}_error`).innerText = data.errors[key]
+        }
+    }
+}
+registerForm.onsubmit = async (e) => {
+    e.preventDefault()
+
+    let formData = new FormData(registerForm)
+
+    let res = await fetch('/register', {
+        method: 'POST',
+        body: formData
+    })
+
+    let data = await res.json()
+
+    clearErrors()
+
+    if (data.success) {
+        window.location.href = data.redirect
+    } else {
+        for (let key in data.errors) {
+            document.getElementById(`reg_${key}_error`).innerText = data.errors[key]
+        }
+    }
+}
+function clearErrors() {
+    document.querySelectorAll('.error').forEach(e => e.innerText = "")
+}
+</script>
+
+</body>
+</html>
