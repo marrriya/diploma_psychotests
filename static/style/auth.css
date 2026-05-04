@@ -1,7 +1,140 @@
+/* ===== PAGE ===== */
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #F0F0F5;
+    color: #2F3A59;
+
+    height: 100vh;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* ===== OUTER WRAPPER (центр экрана) ===== */
+.auth-page {
+    width: 360px;
+    height: 300px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* ===== INNER CARD ===== */
+.auth-container {
+    width: 100%;
+    height: 100%;
+
+    background: white;
+
+    padding: 30px;
+    border-radius: 14px;
+
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+
+    /* ВАЖНО: содержимое сверху */
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; /* НЕ центрируем */
+}
+
+/* ===== TABS ===== */
+.tabs {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 25px;
+}
+
+/* таб как заголовок */
+.tab {
+    font-size: 16px;
+    font-weight: 600;
+    color: #8A93A6;
+
+    cursor: pointer;
+    position: relative;
+
+    padding-bottom: 6px;
+    transition: 0.2s;
+}
+
+/* hover */
+.tab:hover {
+    color: #4F7CFE;
+}
+
+/* активный таб */
+.tab.active {
+    color: #2F3A59;
+}
+
+/* подчёркивание */
+.tab.active::after {
+    content: "";
+    position: absolute;
+
+    left: 0;
+    bottom: 0;
+
+    width: 100%;
+    height: 2px;
+
+    background: #4F7CFE;
+    border-radius: 2px;
+}
+
+/* ===== FORMS ===== */
 .form {
     display: none;
+    flex-direction: column;
 }
 
 .form.active {
-    display: block;
+    display: flex;
+}
+
+/* ===== INPUTS ===== */
+.form input {
+    padding: 10px;
+    margin-bottom: 10px;
+
+    border: 1px solid #ddd;
+    border-radius: 8px;
+
+    outline: none;
+    transition: 0.2s;
+}
+
+.form input:focus {
+    border-color: #4F7CFE;
+}
+
+/* ===== BUTTON ===== */
+.form button {
+    margin-top: 10px;
+    padding: 10px;
+
+    border: none;
+    border-radius: 8px;
+
+    background: #4F7CFE;
+    color: white;
+
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.form button:hover {
+    background: #3b66e0;
+}
+
+/* ===== ERRORS ===== */
+.error {
+    font-size: 12px;
+    color: #e74c3c;
+    min-height: 14px;
+    margin-bottom: 6px;
 }

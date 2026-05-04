@@ -7,10 +7,19 @@
 </head>
 <body>
     <div class="start-screen" id="startScreen">
-    <h2>{{ title }}</h2>
-    <p>{{ description }}</p>
-    <button onclick="startTest()">Начать тест</button>
-</div>
+        <h2>{{ title }}</h2>
+
+        <p>{{ description }}</p>
+
+        {% if instruction %}
+            <div class="instruction">
+                <h4>Инструкция</h4>
+                <p>{{ instruction }}</p>
+            </div>
+        {% endif %}
+
+        <button onclick="startTest()">Начать тест</button>
+    </div>
 
 <div class="test-container hidden" id="testContainer">
     <div class="test-header">

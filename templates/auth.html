@@ -3,15 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <title>Авторизация</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style/auth.css') }}">
-</head>
-<body>
 
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/auth.css') }}">
+    <script defer src="{{ url_for('static', filename='js/auth.js') }}"></script>
+</head>
+
+<body>
+<div class="auth-page">
 <div class="auth-container">
 
     <div class="tabs">
-        <button id="loginTab">Вход</button>
-        <button id="registerTab">Регистрация</button>
+        <div class="tab active" id="loginTab">Вход</div>
+        <div class="tab" id="registerTab">Регистрация</div>
     </div>
 
     <!-- LOGIN -->
@@ -38,90 +41,8 @@
 
         <button type="submit">Зарегистрироваться</button>
     </form>
-
 </div>
-
-<script>
-    const loginForm = document.getElementById('loginForm')
-const registerForm = document.getElementById('registerForm')
-
-const loginTab = document.getElementById('loginTab')
-const registerTab = document.getElementById('registerTab')
-
-function showForm(type) {
-    loginForm.classList.remove('active')
-    registerForm.classList.remove('active')
-
-    if (type === 'register') {
-        registerForm.classList.add('active')
-    } else {
-        loginForm.classList.add('active')
-    }
-}
-
-// переключение по кнопкам
-loginTab.onclick = () => showForm('login')
-registerTab.onclick = () => showForm('register')
-
-// при загрузке страницы
-window.onload = () => {
-    const params = new URLSearchParams(window.location.search)
-    const mode = params.get('mode')
-
-    if (mode === 'register') {
-        showForm('register')
-    } else {
-        showForm('login')
-    }
-}
-loginForm.onsubmit = async (e) => {
-    e.preventDefault()
-
-    let formData = new FormData(loginForm)
-
-    let res = await fetch('/login', {
-        method: 'POST',
-        body: formData
-    })
-
-    let data = await res.json()
-
-    clearErrors()
-
-    if (data.success) {
-        window.location.href = data.redirect
-    } else {
-        for (let key in data.errors) {
-            document.getElementById(`login_${key}_error`).innerText = data.errors[key]
-        }
-    }
-}
-registerForm.onsubmit = async (e) => {
-    e.preventDefault()
-
-    let formData = new FormData(registerForm)
-
-    let res = await fetch('/register', {
-        method: 'POST',
-        body: formData
-    })
-
-    let data = await res.json()
-
-    clearErrors()
-
-    if (data.success) {
-        window.location.href = data.redirect
-    } else {
-        for (let key in data.errors) {
-            document.getElementById(`reg_${key}_error`).innerText = data.errors[key]
-        }
-    }
-}
-function clearErrors() {
-    document.querySelectorAll('.error').forEach(e => e.innerText = "")
-}
-</script>
+</div>
 
 </body>
 </html>

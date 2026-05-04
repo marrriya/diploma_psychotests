@@ -18,40 +18,32 @@
     </nav>
 
     <div class="user-panel">
-        <span class="username">{{ session.username }}</span>
+        <span class="username">{{ username }}</span>
         <a href="/logout" class="logout">Выйти</a>
     </div>
 </header>
 
 <main>
     <h2>Пройденные тесты</h2>
+        <div class="tests">
+            {% for test in tests %}
+                <div class="test-card-completed">
 
-    <!-- <div class="tests">
-        {% for test in tests %}
-            <a href="/test/{{ test[0] }}" class="test-card completed">
-                {{ test[1] }}
-            </a>
-        {% endfor %}
-    </div> -->
-<div class="tests">
-    {% for test in tests %}
-        <div class="test-card completed">
+                    <div class="test-title">{{ test[1] }}</div>
 
-            <div class="test-title">{{ test[1] }}</div>
+                    <div class="card-buttons">
+                        <a href="/test/{{ test[0] }}" class="btn">
+                            Результат
+                        </a>
 
-            <div class="card-buttons">
-                <a href="/test/{{ test[0] }}" class="btn">
-                    Результат
-                </a>
+                        <a href="/retake/{{ test[0] }}" class="btn">
+                            Пройти заново
+                        </a>
+                    </div>
 
-                <a href="/retake/{{ test[0] }}" class="btn">
-                    Пройти заново
-                </a>
-            </div>
-
+                </div>
+            {% endfor %}
         </div>
-    {% endfor %}
-</div>
 </main>
 
 </body>

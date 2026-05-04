@@ -12,106 +12,106 @@ app.secret_key = 'supersecretkey'  # для сессий
 
 ###. АДМИНКА. ###
 
-def get_db():
-    conn = sqlite3.connect('database.db')
-    conn.row_factory = sqlite3.Row
-    return conn
 
 
-def is_admin():
-    print("CHECK ADMIN:", session)
-    return session.get('role') == 'admin'
+# def is_admin():
+#     print("CHECK ADMIN:", session)
+#     return session.get('role') == 'admin'
 
 
 
-# ===================== ADMIN: USERS =====================
-@app.route('/admin/users')
-def admin_users():
-    if not is_admin(): abort(403)
-    db = get_db()
-    users = db.execute("SELECT * FROM users").fetchall()
-    return render_template('admin/users.html', users=users)
+# # ===================== ADMIN: USERS =====================
+# @app.route('/admin/users')
+# def admin_users():
+#     if not is_admin(): abort(403)
+#     db = get_db()
+#     users = db.execute("SELECT * FROM users").fetchall()
+#     return render_template('admin/users.html', users=users)
 
 
-@app.route('/admin/delete_user/<int:id>')
-def delete_user(id):
-    if not is_admin(): abort(403)
-    db = get_db()
-    db.execute("DELETE FROM users WHERE id=?", (id,))
-    db.commit()
-    flash('Пользователь удален')
-    return redirect('/admin/users')
+# @app.route('/admin/delete_user/<int:id>')
+# def delete_user(id):
+#     if not is_admin(): abort(403)
+#     db = get_db()
+#     db.execute("DELETE FROM users WHERE id=?", (id,))
+#     db.commit()
+#     flash('Пользователь удален')
+#     return redirect('/admin/users')
 
-# ===================== ADMIN: TESTS =====================
-@app.route('/admin/tests')
-def admin_tests():
-    if not is_admin(): abort(403)
-    db = get_db()
-    tests = db.execute("SELECT * FROM tests").fetchall()
-    return render_template('admin/tests.html', tests=tests)
+# # ===================== ADMIN: TESTS =====================
+# @app.route('/admin/tests')
+# def admin_tests():
+#     if not is_admin(): abort(403)
+#     db = get_db()
+#     tests = db.execute("SELECT * FROM tests").fetchall()
+#     return render_template('admin/tests.html', tests=tests)
 
 
-@app.route('/admin/tests/create', methods=['GET', 'POST'])
-def create_test():
-    if not is_admin(): abort(403)
+# @app.route('/admin/tests/create', methods=['GET', 'POST'])
+# def create_test():
+#     if not is_admin(): abort(403)
 
-    if request.method == 'POST':
-        title = request.form['title']
-        topic = request.form['topic']
-        description = request.form['description']
+#     if request.method == 'POST':
+#         title = request.form['title']
+#         topic = request.form['topic']
+#         description = request.form['description']
 
-        db = get_db()
-        db.execute(
-            "INSERT INTO tests (title, topic, description) VALUES (?, ?, ?)",
-            (title, topic, description)
-        )
-        db.commit()
-        flash('Тест создан')
-        return redirect('/admin/tests')
+#         db = get_db()
+#         db.execute(
+#             "INSERT INTO tests (title, topic, description) VALUES (?, ?, ?)",
+#             (title, topic, description)
+#         )
+#         db.commit()
+#         flash('Тест создан')
+#         return redirect('/admin/tests')
 
-    return render_template('admin/create_test.html')
+#     return render_template('admin/create_test.html')
 
-@app.route('/admin/tests/edit/<int:id>', methods=['GET', 'POST'])
-def edit_test(id):
-    if not is_admin(): abort(403)
-    db = get_db()
+# @app.route('/admin/tests/edit/<int:id>', methods=['GET', 'POST'])
+# def edit_test(id):
+#     if not is_admin(): abort(403)
+#     db = get_db()
 
-    if request.method == 'POST':
-        title = request.form['title']
-        topic = request.form['topic']
-        description = request.form['description']
+#     if request.method == 'POST':
+#         title = request.form['title']
+#         topic = request.form['topic']
+#         description = request.form['description']
 
-        db.execute(
-            "UPDATE tests SET title=?, topic=?, description=? WHERE id=?",
-            (title, topic, description, id)
-        )
-        db.commit()
-        flash('Тест обновлен')
-        return redirect('/admin/tests')
+#         db.execute(
+#             "UPDATE tests SET title=?, topic=?, description=? WHERE id=?",
+#             (title, topic, description, id)
+#         )
+#         db.commit()
+#         flash('Тест обновлен')
+#         return redirect('/admin/tests')
 
-    test = db.execute("SELECT * FROM tests WHERE id=?", (id,)).fetchone()
-    return render_template('admin/edit_test.html', test=test)
+#     test = db.execute("SELECT * FROM tests WHERE id=?", (id,)).fetchone()
+#     return render_template('admin/edit_test.html', test=test)
 
-@app.route('/admin/tests/delete/<int:id>')
-def delete_test(id):
-    if not is_admin(): abort(403)
-    db = get_db()
-    db.execute("DELETE FROM tests WHERE id=?", (id,))
-    db.commit()
-    flash('Тест удален')
-    return redirect('/admin/tests')
+# @app.route('/admin/tests/delete/<int:id>')
+# def delete_test(id):
+#     if not is_admin(): abort(403)
+#     db = get_db()
+#     db.execute("DELETE FROM tests WHERE id=?", (id,))
+#     db.commit()
+#     flash('Тест удален')
+#     return redirect('/admin/tests')
 
 
 
 
+# ИНИЦИАЛИЗАЦИЯ БД 
 
-# Инициализация БД
 def init_db():
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
     conn.commit()
     conn.close()
 
+def get_db():
+    conn = sqlite3.connect('database.db')
+    conn.row_factory = sqlite3.Row
+    return conn
 
 @app.route('/')
 def index():
@@ -170,10 +170,11 @@ def index():
         completed_tests=completed_tests
     )
   
+# АВТОРИЗАЦИЯ И РЕГИСТРАЦИЯ
+
 @app.route('/auth')
 def auth_page():
     return render_template('auth.html')
-
 
 @app.route('/register', methods=['POST'])
 def register():
@@ -214,7 +215,7 @@ def register():
         return jsonify({"success": False, "errors": {"username": "Логин уже занят"}})
 
     session['username'] = username
-    return jsonify({"success": True})
+    return jsonify({"success": True,"redirect": "/"})
 
 @app.route('/profile')
 def profile():
@@ -255,18 +256,13 @@ def login():
     session['user_id'] = user_id
     session['role'] = role
 
-    print("LOGIN SESSION:", session)  # для проверки
+    # print("LOGIN SESSION:", session)  # для проверки
 
     conn.close()
-    # return jsonify({"success": True})
-    # if role == 'admin':
-    #     return jsonify({"success": True, "redirect": "/admin/users"})
-    # else:
-    #     return jsonify({"success": True, "redirect": "/"})
     if role == 'admin':
-        return jsonify({"success": True, "redirect": "/admin/users"})
+        return jsonify({"success": True, "redirect": "/admin/admin"})
     elif role == 'teacher':
-        return jsonify({"success": True, "redirect": "/teacher"})
+        return jsonify({"success": True, "redirect": "/teacher/teach"})
     else:
         return jsonify({"success": True, "redirect": "/"})
 
@@ -275,13 +271,190 @@ def logout():
     session.clear()
     return redirect('/')
 
-@app.route('/teacher')
-def teacher():
-    if 'role' not in session or session['role'] != 'teacher':
-        return redirect('/')
+# РАЗДЕЛ ПРЕПОДАВАТЕЛЯ
+
+@app.route('/teacher/teach')
+def teach():
+    if 'user_id' not in session:
+        return redirect('/auth')
+
+    conn = sqlite3.connect('database.db')
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    user_id = session['user_id']
+
+    # ===== ТЕСТЫ ПРЕПОДА =====
+    cursor.execute("""
+        SELECT id, title, description
+        FROM tests
+        WHERE author_id = ?
+    """, (user_id,))
     
-    return "Страница преподавателя (пока заглушка)"
-# Tест
+    teacher_tests = cursor.fetchall()
+
+    # ===== ВСЕ ТЕСТЫ =====
+    cursor.execute("""
+        SELECT id, title, description, topic
+        FROM tests
+    """)
+    
+    all_tests_raw = cursor.fetchall()
+
+    conn.close()
+
+    # ===== ГРУППИРОВКА ПО ТЕМАМ (как у тебя на index) =====
+    all_tests = {}
+
+    for test in all_tests_raw:
+        topic = test['topic'] or "Без категории"
+        
+        if topic not in all_tests:
+            all_tests[topic] = []
+        
+        all_tests[topic].append(test)
+
+    return render_template(
+        "teacher/teach.html",
+        username=session['username'],
+        teacher_tests=teacher_tests,
+        tests=all_tests
+    )
+
+@app.route('/teacher/create_test_page')
+def create_test_page():
+    if session.get('role') != 'teacher':
+        return redirect('/')
+    return render_template('teacher/create_test.html')
+
+@app.route('/teacher/create_test', methods=['POST'])
+def create_test():
+    data = request.json
+
+    db = get_db()
+
+    cursor = db.cursor()
+
+    cursor.execute("""
+        INSERT INTO tests (title, description)
+        VALUES (?, ?)
+    """, (data['title'], data['description']))
+
+    test_id = cursor.lastrowid
+
+    scale_ids = []
+
+    for s in data['scales']:
+        cursor.execute("""
+            INSERT INTO scales (name, test_id)
+            VALUES (?, ?)
+        """, (s, test_id))
+
+        scale_ids.append(cursor.lastrowid)
+
+    for q in data['questions']:
+        cursor.execute("""
+            INSERT INTO questions (test_id, question, scale_id, q_type)
+            VALUES (?, ?, ?, 'single')
+        """, (test_id, q['text'], scale_ids[int(q['scale'])]))
+
+    db.commit()
+
+    return {"success": True}
+
+@app.route('/teacher/create_test_full', methods=['POST'])
+def create_test_full():
+
+    data = request.get_json()
+    db = get_db()
+    cursor = db.cursor()
+
+    try:
+        # ===== TEST =====
+        cursor.execute("""
+            INSERT INTO tests (title, description, instruction, author_id, topic)
+            VALUES (?, ?, ?, ?, ?)
+        """, (
+            data.get('title'),
+            data.get('description'),
+            data.get('instruction', ''),
+            session.get('user_id'),
+            data.get('topic')
+        ))
+
+        test_id = cursor.lastrowid
+
+        # ===== SCALES =====
+        scale_ids = []
+
+        for s in data.get('scales', []):
+            cursor.execute("""
+                INSERT INTO scales (name, max_score, test_id)
+                VALUES (?, ?, ?)
+            """, (
+                s.get('name'),
+                s.get('max'),
+                test_id
+            ))
+            scale_ids.append(cursor.lastrowid)
+
+        # ===== QUESTIONS + ANSWERS =====
+        for i, q in enumerate(data.get('questions', [])):
+
+            scale_id = scale_ids[q.get('scale', 0)]
+
+            cursor.execute("""
+                INSERT INTO questions (test_id, question, order_num, scale_id)
+                VALUES (?, ?, ?, ?)
+            """, (
+                test_id,
+                q.get('text'),
+                i,
+                scale_id
+            ))
+
+            question_id = cursor.lastrowid
+
+            for ans in q.get('answers', []):
+                cursor.execute("""
+                    INSERT INTO answer_options (question_id, answer_text, score)
+                    VALUES (?, ?, ?)
+                """, (
+                    question_id,
+                    ans.get('text'),     # ✅ FIX
+                    ans.get('score', 0)  # ✅ FIX
+                ))
+
+        # ===== INTERPRETATIONS =====
+        for block in data.get('interpretations', []):
+
+            scale_id = scale_ids[block.get('scale_index', 0)]
+
+            for r in block.get('ranges', []):
+
+                cursor.execute("""
+                    INSERT INTO scale_interpretation
+                    (scale_id, min_score, max_score, title, description)
+                    VALUES (?, ?, ?, ?, ?)
+                """, (
+                    scale_id,
+                    r.get('min'),
+                    r.get('max'),
+                    r.get('title'),
+                    r.get('desc')
+                ))
+
+        db.commit()
+
+        return {"success": True, "test_id": test_id}
+
+    except Exception as e:
+        db.rollback()
+        print("ERROR:", e)
+        return {"success": False, "error": str(e)}
+
+
+# ПРОХОЖДЕНИЕ ТЕСТА И РЕЗУЛЬТАТ
 
 @app.route('/test/<int:test_id>')
 def test_page(test_id):
@@ -304,13 +477,14 @@ def test_page(test_id):
 
     # инфа о тесте
     cursor.execute("""
-        SELECT title, description, visualization_type
+        SELECT title, description, instruction, visualization_type
         FROM tests
         WHERE id = ?
     """, (test_id,))
     test_data = cursor.fetchone()
 
-    title, description, visualization_type = test_data
+    # title, description, visualization_type = test_data
+    title, description, instruction, visualization_type = test_data
 
     # проверяем последнюю попытку
     cursor.execute("""
@@ -359,6 +533,7 @@ def test_page(test_id):
             test_id=test_id
         )
 
+
     # ЕСЛИ НЕ ПРОХОДИЛ → ПОКАЗЫВАЕМ ТЕСТ
 
     cursor.execute("""
@@ -397,12 +572,20 @@ def test_page(test_id):
 
     conn.close()
 
+    # return render_template(
+    #     'test.html',
+    #     questions=questions,
+    #     test_id=test_id,
+    #     title=title,
+    #     description=description
+    # )
     return render_template(
         'test.html',
         questions=questions,
         test_id=test_id,
         title=title,
-        description=description
+        description=description,
+        instruction=instruction
     )
 
 @app.route('/cancel_test')
@@ -564,7 +747,6 @@ def retake(test_id):
     # return redirect(f'/test/{test_id}')
     return redirect(f'/test/{test_id}?retake=1')
 
-
 @app.route('/completed')
 def completed_tests_page():
     if 'username' not in session:
@@ -589,8 +771,8 @@ def completed_tests_page():
 
     conn.close()
 
-    return render_template('completed.html', tests=tests)
-
+    # return render_template('completed.html', tests=tests)
+    return render_template('completed.html', username=session.get('username'), tests=tests)
 
 @app.route('/portrait')
 def portrait():
@@ -643,8 +825,8 @@ def portrait():
 
 
 
-def is_admin():
-    return True
+# def is_admin():
+#     return True
 
 # @app.route('/admin')
 # # @login_required

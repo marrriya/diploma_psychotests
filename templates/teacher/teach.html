@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Панель преподавателя</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/main.css') }}">
+</head>
+
+<body>
+
+<header class="header">
+    <div class="logo">MindScape</div>
+
+    <nav class="nav">
+        <a href="/teacher/teach" class="active">Каталог тестов</a>
+        <a href="/teacher/groups">Ваши группы</a>
+        <a href="/teacher/results">Результаты тестирования</a>
+    </nav>
+
+    <div class="user-panel">
+        <span class="username">Привет, {{ username }}</span>
+        <a href="/logout" class="logout">Выйти</a>
+    </div>
+</header>
+
+<main>
+
+    <!-- ===== ВАШИ ТЕСТЫ ===== -->
+    <h2>Ваши тесты</h2>
+
+    <div class="tests">
+
+        <!-- {% if teacher_tests %}
+            {% for test in teacher_tests %}
+                <a href="/test/{{ test.id }}" class="test-card">
+                    <div class="test-title">{{ test.title }}</div>
+                    <div class="test-desc">{{ test.description }}</div>
+                </a>
+            {% endfor %}
+
+            кнопка создания 
+            <div class="test-card create-card">
+                <div class="plus">+</div>
+                <div class="create-text">Создать тест</div>
+            </div>
+
+        {% else %}
+
+             если тестов нет 
+            <div class="test-card create-card">
+                <div class="plus">+</div>
+                <div class="create-text">Создать первый тест</div>
+            </div>
+
+        {% endif %}
+
+    </div> -->
+    {% if teacher_tests %}
+            <!-- кнопка создания -->
+        <a href="/teacher/create_test_page" class="test-card create-card">
+            <div class="plus">+</div>
+            <div class="create-text">Создать тест</div>
+        </a>
+        {% for test in teacher_tests %}
+            <a href="/test/{{ test.id }}" class="test-card">
+                <div class="test-title">{{ test.title }}</div>
+                <div class="test-desc">{{ test.description }}</div>
+            </a>
+        {% endfor %}
+
+
+
+    {% else %}
+
+        <!-- если тестов нет -->
+        <a href="/teacher/create_test_page" class="test-card create-card">
+            <div class="plus">+</div>
+            <div class="create-text">Создать первый тест</div>
+        </a>
+
+    {% endif %}
+    </div>
+    <!-- ===== ВСЕ ТЕСТЫ ===== -->
+    <h2 style="margin-top: 40px;">Все тесты</h2>
+
+    {% for topic, test_list in tests.items() %}
+        <div class="category">
+            <h3>{{ topic }}</h3>
+
+            <div class="tests">
+                {% for test in test_list %}
+                    <a href="/test/{{ test.id }}" class="test-card">
+                        <div class="test-title">{{ test.title }}</div>
+                        <div class="test-desc">{{ test.description }}</div>
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+    {% endfor %}
+
+</main>
+
+</body>
+</html>

@@ -284,3 +284,32 @@ main {
 }
 
 
+/* учитель */
+.create-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    cursor: pointer;
+
+    border: 2px dashed #4F7CFE;
+    background: #f7f9ff;
+}
+
+.create-card:hover {
+    background: #eef3ff;
+}
+
+.plus {
+    font-size: 40px;
+    color: #4F7CFE;
+    margin-bottom: 5px;
+}
+
+.create-text {
+    font-size: 14px;
+    color: #4F7CFE;
+}
+.create-card {
+    min-height: 100px;
+}

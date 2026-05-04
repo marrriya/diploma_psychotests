@@ -3,9 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <title>Главная</title>
+
     <link rel="stylesheet" href="{{ url_for('static', filename='style/main.css') }}">
+    <script defer src="{{ url_for('static', filename='js/main.js') }}"></script>
 </head>
+
 <body>
+
 <header class="header">
     <div class="logo">MindScape</div>
 
@@ -15,140 +19,39 @@
         <a href="/portrait">Цифровой портрет</a>
     </nav>
 
-        <div class="user-panel">
+    <div class="user-panel">
         {% if username %}
             <span class="username">Привет, {{ username }}</span>
             <a href="/logout" class="logout">Выйти</a>
         {% else %}
             <a href="/auth">Войти</a>
         {% endif %}
-        
     </div>
 </header>
 
-    <main>
+<main>
+    <!-- <h2>Групповые тесты</h2>. добавить логику, если есть, показываем блок -->
+    <h2>Все тесты</h2>
 
-        <h2>Каталог тестов</h2>
+    {% for topic, test_list in tests.items() %}
+        <div class="category">
+            <h3>{{ topic }}</h3>
 
-        {% for topic, test_list in tests.items() %}
-            <div class="category">
-                <h3>{{ topic }}</h3>
-                <div class="tests">
-                    {% for test in test_list %}
-                        <a href="/test/{{ test.id }}" 
-                        class="test-card {% if test.id in completed_tests %}completed{% endif %}">
-                            
-                            <div class="test-title">{{ test.title }}</div>
-                            <div class="test-desc">{{ test.description }}</div>
+            <div class="tests">
+                {% for test in test_list %}
+                    <a href="/test/{{ test.id }}" 
+                       class="test-card {% if test.id in completed_tests %}completed{% endif %}">
+                        
+                        <div class="test-title">{{ test.title }}</div>
+                        <div class="test-desc">{{ test.description }}</div>
 
-                        </a>
-                    {% endfor %}
-                </div>
+                    </a>
+                {% endfor %}
             </div>
-        {% endfor %}
-
         </div>
+    {% endfor %}
 
-    </main>
-    
-    <script>
-       
-        function openModal(type) {
-    const modal = document.getElementById('authModal');
-    modal.classList.remove('hidden');
-
-    if(type === 'login') {
-        document.getElementById('loginTab').checked = true;
-    } else {
-        document.getElementById('registerTab').checked = true;
-    }
-
-    switchForm();
-}
-
-function closeModal() {
-    document.getElementById('authModal').classList.add('hidden');
-}
-
-// переключение форм
-function switchForm() {
-    const isLogin = document.getElementById('loginTab').checked;
-    document.getElementById('loginForm').classList.toggle('hidden', !isLogin);
-    document.getElementById('registerForm').classList.toggle('hidden', isLogin);
-}
-
-// слушаем изменение вкладок
-document.getElementById('loginTab').addEventListener('change', switchForm);
-document.getElementById('registerTab').addEventListener('change', switchForm);
-
-// закрытие при клике вне модалки
-document.getElementById('authModal').addEventListener('click', function(e) {
-    if(e.target === this) closeModal();
-});
-        // LOGIN
-        document.getElementById('loginForm').onsubmit = async (e) => {
-            e.preventDefault()
-
-            let formData = new FormData(e.target)
-
-            let res = await fetch('/login', {
-                method: 'POST',
-                body: formData
-            })
-
-            let data = await res.json()
-
-            clearErrors()
-
-            // if (data.success) {
-            //     location.reload()
-            if (data.success) {
-    window.location.href = data.redirect
-}
-                // window.location.href = "/profile"
-
-            } else {
-                for (let key in data.errors) {
-                    document.getElementById(`login_${key}_error`).innerText = data.errors[key]
-                }
-            }
-        }
-
-        // REGISTER
-        document.getElementById('registerForm').onsubmit = async (e) => {
-            e.preventDefault()
-
-            let formData = new FormData(e.target)
-
-            let res = await fetch('/register', {
-                method: 'POST',
-                body: formData
-            })
-
-            let data = await res.json()
-
-            clearErrors()
-
-            // if (data.success) {
-            //     location.reload()
-            if (data.success) {
-    window.location.href = data.redirect
-}
-                // window.location.href = "/profile"
-                
-
-            } else {
-                for (let key in data.errors) {
-                    document.getElementById(`reg_${key}_error`).innerText = data.errors[key]
-                }
-            }
-        }
-
-        function clearErrors() {
-                document.querySelectorAll('.error').forEach(e => e.innerText = "")
-            }
-
-    </script>
+</main>
 
 </body>
 </html>

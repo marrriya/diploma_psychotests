@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <title>Результаты</title>
-    <!-- <link rel="stylesheet" href="{{ url_for('static', filename='style/test.css') }}"> -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style/result.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -14,28 +13,6 @@
 
     <h2>Результаты теста</h2>
 
-    <!-- {% for r in results %}
-        <div class="question-box">
-
-            <h3>{{ r.name }}</h3>
-
-            <p>
-                <strong>{{ r.score }} / {{ r.max }}</strong>
-            </p>
-
-            {% if r.title %}
-                <p><strong>{{ r.title }}</strong></p>
-            {% endif %}
-
-            {% if r.desc %}
-                <p>{{ r.desc }}</p>
-            {% endif %}
-
-        </div>
-    {% endfor %}
-       <div class="chart">
-        <canvas id="chart"></canvas>
-    </div> -->
     <div class="result-layout">
 
     <div class="results-block">
@@ -70,12 +47,9 @@
         <a href="/">
             <button>На главную</button>
         </a>
-        <!-- <form method="GET" action="/start_test/{{ test_id }}">
-            <button type="submit">Пройти тест заново</button> -->
             <form method="GET" action="/retake/{{ test_id }}">
             <button type="submit">Пройти тест заново</button>
         </form>
-        <!-- </form> -->
     </div>
 
 
@@ -86,54 +60,54 @@
 
 
 <script>
-const labels = {{ chart_labels | safe }};
-const data = {{ chart_values | safe }};
-const type = "{{ chart_type }}";
+    const labels = {{ chart_labels | safe }};
+    const data = {{ chart_values | safe }};
+    const type = "{{ chart_type }}";
 
-let chartConfig = {
-    type: type,
-    data: {
-        labels: labels,
-        datasets: [{
-            label: 'Результаты',
-            data: data,
-        }]
-    },
-    options: {}
-};
-
-// горизонтальный бар
-if (type === 'horizontal_bar') {
-    chartConfig.type = 'bar';
-    chartConfig.options.indexAxis = 'y';
-}
-
-// радар
-if (type === 'radar') {
-    chartConfig.type = 'radar';
-}
-
-// линейный
-if (type === 'line') {
-    chartConfig.type = 'line';
-}
-
-// кастом (пример: scatter как у Айзенка)
-if (type === 'custom') {
-    chartConfig.type = 'scatter';
-    chartConfig.data = {
-        datasets: [{
-            label: 'Пользователь',
-            data: [{
-                x: data[0],
-                y: data[1]
+    let chartConfig = {
+        type: type,
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Результаты',
+                data: data,
             }]
-        }]
+        },
+        options: {}
     };
-}
+
+    // горизонтальный бар
+    if (type === 'horizontal_bar') {
+        chartConfig.type = 'bar';
+        chartConfig.options.indexAxis = 'y';
+    }
+
+    // радар
+    if (type === 'radar') {
+        chartConfig.type = 'radar';
+    }
+
+    // линейный
+    if (type === 'line') {
+        chartConfig.type = 'line';
+    }
+
+    // кастом (пример: scatter как у Айзенка)
+    if (type === 'custom') {
+        chartConfig.type = 'scatter';
+        chartConfig.data = {
+            datasets: [{
+                label: 'Пользователь',
+                data: [{
+                    x: data[0],
+                    y: data[1]
+                }]
+            }]
+        };
+    }
 
 
-new Chart(document.getElementById('chart'), chartConfig);
+    new Chart(document.getElementById('chart'), chartConfig);
 </script>
 
 </body>

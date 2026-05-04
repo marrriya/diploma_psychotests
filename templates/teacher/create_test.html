@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Создание теста</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style/create_test.css') }}">
+</head>
+
+<body>
+
+<div class="container">
+
+    <a href="/teacher/teach" class="back">← Назад</a>
+
+    <h1 class="page-title">Создание теста</h1>
+
+    <!-- STEPS -->
+    <div class="steps">
+        <div class="step active"></div>
+        <div class="step"></div>
+        <div class="step"></div>
+        <div class="step"></div>
+        <div class="step"></div>
+        <div class="step"></div>
+    </div>
+    <!-- ================= STEP 1 ================= -->
+    <div class="step-block active" id="step1">
+
+        <h2>Информация</h2>
+
+        <input id="title" placeholder="Название теста *">
+        <div class="error" id="error_title"></div>
+
+        <textarea id="description" placeholder="Описание *"></textarea>
+        <div class="error" id="error_description"></div>
+
+        <textarea id="instruction">
+Внимательно прочитайте вопросы и выберите наиболее подходящий вариант ответа.
+        </textarea>
+        <input id="topic" placeholder="Тема теста *">
+        <div class="error" id="error_topic"></div>
+
+        <button onclick="next1()">Далее</button>
+    </div>
+
+    <!-- ================= STEP 2 ================= -->
+    <div class="step-block" id="step2">
+
+        <h2>Шкалы</h2>
+
+        <div id="scales">
+
+            <div class="scale-item">
+                <div class="scale-fields">
+                    <input class="scale-name" placeholder="Название шкалы *">
+                    <input class="scale-max" type="number" placeholder="Макс. балл *">
+                    <div class="error"></div>
+                </div>
+            </div>
+
+        </div>
+
+        <button type="button" onclick="addScale()">+ Добавить шкалу</button>
+
+        <div class="error" id="error_scales"></div>
+
+        <div class="nav">
+            <button onclick="showStep(1)">Назад</button>
+            <button onclick="next2()">Далее</button>
+        </div>
+    </div>
+
+    <!-- ================= STEP 3 ================= -->
+    <div class="step-block" id="step3">
+
+        <h2>Вопросы</h2>
+
+        <!-- сюда добавляются вопросы -->
+        <div id="questions"></div>
+
+        <!-- КНОПКА ДОБАВЛЕНИЯ ВОПРОСА -->
+        <button type="button" onclick="addQuestion()">+ Добавить вопрос</button>
+
+        <div class="error" id="error_questions"></div>
+
+        <div class="nav">
+            <button onclick="showStep(2)">Назад</button>
+            <button onclick="next3()">Далее</button>
+        </div>
+    </div>
+
+    <!-- STEP 4 -->
+    <div class="step-block" id="step4">
+        <h2>Интерпретация результатов</h2>
+
+        <div id="interpretations"></div>
+
+        <div class="nav">
+            <button onclick="showStep(3)">Назад</button>
+            <!-- <button onclick="next4()">Далее</button> -->
+            <button onclick="next4()">Далее</button>
+        </div>
+    </div>
+
+    <!-- STEP 5 -->
+    <div class="step-block" id="step5">
+        <h2>Визуализация</h2>
+
+        <p style="text-align:center; opacity:0.6;">Coming soon 🚧</p>
+
+        <div class="nav">
+            <button onclick="showStep(4)">Назад</button>
+            <button onclick="next5()">Далее</button>
+        </div>
+    </div>
+
+    <!-- STEP 6 (ФИНАЛ) -->
+    <div class="step-block" id="step6">
+        <h2>Проверка</h2>
+
+        <div id="preview"></div>
+        
+
+        <div class="nav">
+            <button onclick="showStep(5)">Назад</button>
+            <button onclick="submitTest()">Создать тест</button>
+        </div>
+    </div>
+
+</div>
+
+<script src="{{ url_for('static', filename='js/create_test.js') }}"></script>
+</body>
+</html>
