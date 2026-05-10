@@ -2,102 +2,96 @@ from flask import Flask, render_template, request, redirect, session, abort, fla
 import sqlite3
 
 from flask import jsonify
-import sqlite3
 import json
 from werkzeug.security import generate_password_hash, check_password_hash
+import random
+import string
 
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'  # для сессий
 
 
 ###. АДМИНКА. ###
+    # def is_admin():
+    #     print("CHECK ADMIN:", session)
+    #     return session.get('role') == 'admin'
+
+    # # ===================== ADMIN: USERS =====================
+    # @app.route('/admin/users')
+    # def admin_users():
+    #     if not is_admin(): abort(403)
+    #     db = get_db()
+    #     users = db.execute("SELECT * FROM users").fetchall()
+    #     return render_template('admin/users.html', users=users)
 
 
+    # @app.route('/admin/delete_user/<int:id>')
+    # def delete_user(id):
+    #     if not is_admin(): abort(403)
+    #     db = get_db()
+    #     db.execute("DELETE FROM users WHERE id=?", (id,))
+    #     db.commit()
+    #     flash('Пользователь удален')
+    #     return redirect('/admin/users')
 
-# def is_admin():
-#     print("CHECK ADMIN:", session)
-#     return session.get('role') == 'admin'
-
-
-
-# # ===================== ADMIN: USERS =====================
-# @app.route('/admin/users')
-# def admin_users():
-#     if not is_admin(): abort(403)
-#     db = get_db()
-#     users = db.execute("SELECT * FROM users").fetchall()
-#     return render_template('admin/users.html', users=users)
-
-
-# @app.route('/admin/delete_user/<int:id>')
-# def delete_user(id):
-#     if not is_admin(): abort(403)
-#     db = get_db()
-#     db.execute("DELETE FROM users WHERE id=?", (id,))
-#     db.commit()
-#     flash('Пользователь удален')
-#     return redirect('/admin/users')
-
-# # ===================== ADMIN: TESTS =====================
-# @app.route('/admin/tests')
-# def admin_tests():
-#     if not is_admin(): abort(403)
-#     db = get_db()
-#     tests = db.execute("SELECT * FROM tests").fetchall()
-#     return render_template('admin/tests.html', tests=tests)
+    # # ===================== ADMIN: TESTS =====================
+    # @app.route('/admin/tests')
+    # def admin_tests():
+    #     if not is_admin(): abort(403)
+    #     db = get_db()
+    #     tests = db.execute("SELECT * FROM tests").fetchall()
+    #     return render_template('admin/tests.html', tests=tests)
 
 
-# @app.route('/admin/tests/create', methods=['GET', 'POST'])
-# def create_test():
-#     if not is_admin(): abort(403)
+    # @app.route('/admin/tests/create', methods=['GET', 'POST'])
+    # def create_test():
+    #     if not is_admin(): abort(403)
 
-#     if request.method == 'POST':
-#         title = request.form['title']
-#         topic = request.form['topic']
-#         description = request.form['description']
+    #     if request.method == 'POST':
+    #         title = request.form['title']
+    #         topic = request.form['topic']
+    #         description = request.form['description']
 
-#         db = get_db()
-#         db.execute(
-#             "INSERT INTO tests (title, topic, description) VALUES (?, ?, ?)",
-#             (title, topic, description)
-#         )
-#         db.commit()
-#         flash('Тест создан')
-#         return redirect('/admin/tests')
+    #         db = get_db()
+    #         db.execute(
+    #             "INSERT INTO tests (title, topic, description) VALUES (?, ?, ?)",
+    #             (title, topic, description)
+    #         )
+    #         db.commit()
+    #         flash('Тест создан')
+    #         return redirect('/admin/tests')
 
-#     return render_template('admin/create_test.html')
+    #     return render_template('admin/create_test.html')
 
-# @app.route('/admin/tests/edit/<int:id>', methods=['GET', 'POST'])
-# def edit_test(id):
-#     if not is_admin(): abort(403)
-#     db = get_db()
+    # @app.route('/admin/tests/edit/<int:id>', methods=['GET', 'POST'])
+    # def edit_test(id):
+    #     if not is_admin(): abort(403)
+    #     db = get_db()
 
-#     if request.method == 'POST':
-#         title = request.form['title']
-#         topic = request.form['topic']
-#         description = request.form['description']
+    #     if request.method == 'POST':
+    #         title = request.form['title']
+    #         topic = request.form['topic']
+    #         description = request.form['description']
 
-#         db.execute(
-#             "UPDATE tests SET title=?, topic=?, description=? WHERE id=?",
-#             (title, topic, description, id)
-#         )
-#         db.commit()
-#         flash('Тест обновлен')
-#         return redirect('/admin/tests')
+    #         db.execute(
+    #             "UPDATE tests SET title=?, topic=?, description=? WHERE id=?",
+    #             (title, topic, description, id)
+    #         )
+    #         db.commit()
+    #         flash('Тест обновлен')
+    #         return redirect('/admin/tests')
 
-#     test = db.execute("SELECT * FROM tests WHERE id=?", (id,)).fetchone()
-#     return render_template('admin/edit_test.html', test=test)
+    #     test = db.execute("SELECT * FROM tests WHERE id=?", (id,)).fetchone()
+    #     return render_template('admin/edit_test.html', test=test)
 
-# @app.route('/admin/tests/delete/<int:id>')
-# def delete_test(id):
-#     if not is_admin(): abort(403)
-#     db = get_db()
-#     db.execute("DELETE FROM tests WHERE id=?", (id,))
-#     db.commit()
-#     flash('Тест удален')
-#     return redirect('/admin/tests')
-
-
+    # @app.route('/admin/tests/delete/<int:id>')
+    # def delete_test(id):
+    #     if not is_admin(): abort(403)
+    #     db = get_db()
+    #     db.execute("DELETE FROM tests WHERE id=?", (id,))
+    #     db.commit()
+    #     flash('Тест удален')
+    #     return redirect('/admin/tests')
 
 
 # ИНИЦИАЛИЗАЦИЯ БД 
@@ -210,8 +204,6 @@ def register():
         )
         conn.commit()
     except sqlite3.IntegrityError:
-        # return {"success": False, "errors": {"username": "Логин уже занят"}}
-        # return jsonify({"success": False, "errors": errors})
         return jsonify({"success": False, "errors": {"username": "Логин уже занят"}})
 
     session['username'] = username
@@ -284,21 +276,21 @@ def teach():
 
     user_id = session['user_id']
 
-    # ===== ТЕСТЫ ПРЕПОДА =====
     cursor.execute("""
-        SELECT id, title, description
+        SELECT id, title, description, topic
         FROM tests
         WHERE author_id = ?
+        AND is_active = 1
     """, (user_id,))
     
     teacher_tests = cursor.fetchall()
 
-    # ===== ВСЕ ТЕСТЫ =====
     cursor.execute("""
         SELECT id, title, description, topic
         FROM tests
+        WHERE is_active = 1
     """)
-    
+        
     all_tests_raw = cursor.fetchall()
 
     conn.close()
@@ -327,43 +319,44 @@ def create_test_page():
         return redirect('/')
     return render_template('teacher/create_test.html')
 
-@app.route('/teacher/create_test', methods=['POST'])
-def create_test():
-    data = request.json
+# @app.route('/teacher/create_test', methods=['POST'])
+# def create_test():
+#     data = request.json
 
-    db = get_db()
+#     db = get_db()
 
-    cursor = db.cursor()
+#     cursor = db.cursor()
 
-    cursor.execute("""
-        INSERT INTO tests (title, description)
-        VALUES (?, ?)
-    """, (data['title'], data['description']))
+#     cursor.execute("""
+#         INSERT INTO tests (title, description)
+#         VALUES (?, ?)
+#     """, (data['title'], data['description']))
 
-    test_id = cursor.lastrowid
+#     test_id = cursor.lastrowid
 
-    scale_ids = []
+#     scale_ids = []
 
-    for s in data['scales']:
-        cursor.execute("""
-            INSERT INTO scales (name, test_id)
-            VALUES (?, ?)
-        """, (s, test_id))
+#     for s in data['scales']:
+#         cursor.execute("""
+#             INSERT INTO scales (name, test_id)
+#             VALUES (?, ?)
+#         """, (s, test_id))
 
-        scale_ids.append(cursor.lastrowid)
+#         scale_ids.append(cursor.lastrowid)
 
-    for q in data['questions']:
-        cursor.execute("""
-            INSERT INTO questions (test_id, question, scale_id, q_type)
-            VALUES (?, ?, ?, 'single')
-        """, (test_id, q['text'], scale_ids[int(q['scale'])]))
+#     for q in data['questions']:
+#         cursor.execute("""
+#             INSERT INTO questions (test_id, question, scale_id, q_type)
+#             VALUES (?, ?, ?, 'single')
+#         """, (test_id, q['text'], scale_ids[int(q['scale'])]))
 
-    db.commit()
+#     db.commit()
 
-    return {"success": True}
+#     return {"success": True}
 
 @app.route('/teacher/create_test_full', methods=['POST'])
 def create_test_full():
+    
 
     data = request.get_json()
     db = get_db()
@@ -428,7 +421,10 @@ def create_test_full():
         # ===== INTERPRETATIONS =====
         for block in data.get('interpretations', []):
 
-            scale_id = scale_ids[block.get('scale_index', 0)]
+            # scale_id = scale_ids[block.get('scale_index', 0)]
+            # scale_id = block.get('scale_id')
+            scale_index = block.get('scale_index', 0)
+            scale_id = scale_ids[scale_index]
 
             for r in block.get('ranges', []):
 
@@ -453,6 +449,747 @@ def create_test_full():
         print("ERROR:", e)
         return {"success": False, "error": str(e)}
 
+# @app.route('/teacher/groups')
+# def teacher_groups():
+#     conn = sqlite3.connect('database.db')
+#     conn.row_factory = sqlite3.Row
+#     cursor = conn.cursor()
+
+#     teacher_id = session.get('user_id')
+
+#     # cursor.execute("""
+#     #     SELECT 
+#     #         g.id, 
+#     #         g.name, 
+#     #         COUNT(gs.user_id) AS students_count
+#     #     FROM groups g
+#     #     LEFT JOIN group_students gs ON g.id = gs.group_id
+#     #     WHERE g.teacher_id = ?
+#     #     GROUP BY g.id
+#     # """, (teacher_id,))
+#     cursor.execute("""
+#         SELECT 
+#             g.id, 
+#             g.name,
+#             g.invite_code,
+#             COUNT(gs.user_id) AS students_count
+
+#         FROM groups g
+
+#         LEFT JOIN group_students gs
+#             ON g.id = gs.group_id
+
+#         WHERE g.teacher_id = ?
+
+#         GROUP BY g.id
+#     """, (teacher_id,))
+
+#     groups = cursor.fetchall()
+
+#     conn.close()
+
+#     return render_template(
+#         'teacher/groups.html',
+#         username=session.get('username'),
+#         groups=groups
+#     )
+@app.route('/teacher/groups')
+def teacher_groups():
+
+    if 'user_id' not in session:
+        return redirect('/login')
+
+    teacher_id = session['user_id']
+
+    conn = sqlite3.connect('database.db')
+    conn.row_factory = sqlite3.Row
+
+    cursor = conn.cursor()
+
+    # -----------------------------
+    # ГРУППЫ
+    # -----------------------------
+    cursor.execute("""
+        SELECT 
+            g.id,
+            g.name,
+            g.invite_code,
+            COUNT(gs.user_id) AS students_count
+        FROM groups g
+        LEFT JOIN group_students gs 
+            ON g.id = gs.group_id
+        WHERE g.teacher_id = ?
+        GROUP BY g.id
+    """, (teacher_id,))
+
+    groups = cursor.fetchall()
+
+    groups = [dict(g) for g in groups]
+
+    for group in groups:
+
+        cursor.execute("""
+            SELECT t.title
+            FROM group_tests gt
+            JOIN tests t ON gt.test_id = t.id
+            WHERE gt.group_id = ?
+        """, (group["id"],))
+
+        group["assigned_tests"] = cursor.fetchall()
+
+    cursor.execute("""
+        SELECT
+            id,
+            title,
+            topic
+        FROM tests
+        WHERE is_active = 1
+        ORDER BY title
+    """)
+
+    tests = cursor.fetchall()
+
+    conn.close()
+
+    return render_template(
+        'teacher/groups.html',
+        username=session.get('username'),
+        groups=groups,
+        tests=tests
+    )
+    
+
+
+def generate_invite_code(length=6):
+    return ''.join(
+        random.choices(
+            string.ascii_uppercase + string.digits,
+            k=length
+        )
+    )
+
+@app.route('/teacher/create_group', methods=['POST'])
+def create_group():
+
+    # проверка авторизации
+    if 'user_id' not in session:
+        return redirect('/login')
+
+    teacher_id = session['user_id']
+
+    # получаем название
+    group_name = request.form.get('group_name', '').strip()
+
+    # проверка пустого названия
+    if not group_name:
+        return redirect('/teacher/groups')
+
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+
+    # генерируем уникальный код
+    invite_code = generate_invite_code()
+
+    # защита от совпадений
+    while True:
+
+        cursor.execute("""
+            SELECT id FROM groups
+            WHERE invite_code = ?
+        """, (invite_code,))
+
+        existing = cursor.fetchone()
+
+        if not existing:
+            break
+
+        invite_code = generate_invite_code()
+
+    # создаём группу
+    cursor.execute("""
+        INSERT INTO groups (
+            name,
+            teacher_id,
+            invite_code
+        )
+        VALUES (?, ?, ?)
+    """, (
+        group_name,
+        teacher_id,
+        invite_code
+    ))
+
+    conn.commit()
+    conn.close()
+
+    return redirect('/teacher/groups')
+
+@app.route('/teacher/assign_test', methods=['POST'])
+def assign_test():
+
+    group_id = request.form['group_id']
+    test_title = request.form['test_title']
+
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+
+    # -----------------------------
+    # ИЩЕМ ТЕСТ ПО НАЗВАНИЮ
+    # -----------------------------
+
+    cursor.execute("""
+        SELECT id
+        FROM tests
+        WHERE title = ?
+    """, (test_title,))
+
+    test = cursor.fetchone()
+
+    # если тест не найден
+    if not test:
+        conn.close()
+        return redirect('/teacher/groups')
+
+    test_id = test[0]
+
+    # -----------------------------
+    # ПРОВЕРКА НА ДУБЛИКАТ
+    # -----------------------------
+
+    cursor.execute("""
+        SELECT id
+        FROM group_tests
+        WHERE group_id = ?
+        AND test_id = ?
+    """, (group_id, test_id))
+
+    existing = cursor.fetchone()
+
+    # -----------------------------
+    # ДОБАВЛЯЕМ
+    # -----------------------------
+
+    if not existing:
+
+        cursor.execute("""
+            INSERT INTO group_tests (
+                group_id,
+                test_id
+            )
+            VALUES (?, ?)
+        """, (
+            group_id,
+            test_id
+        ))
+
+        conn.commit()
+
+    conn.close()
+
+    return redirect('/teacher/groups')
+
+@app.route('/teacher/delete_test/<int:test_id>')
+def delete_test(test_id):
+    import sqlite3
+
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        UPDATE tests
+        SET is_active = 0
+        WHERE id = ?
+    """, (test_id,))
+
+    conn.commit()
+    conn.close()
+
+    return redirect('/teacher/teach')
+
+@app.route('/teacher/edit_test/<int:test_id>')
+def edit_test_page(test_id):
+
+    if session.get('role') != 'teacher':
+        return redirect('/')
+
+    db = get_db()
+    cursor = db.cursor()
+
+    # ===== TEST =====
+    cursor.execute("SELECT * FROM tests WHERE id=?", (test_id,))
+    test = cursor.fetchone()
+
+    # ===== SCALES =====
+    cursor.execute("SELECT * FROM scales WHERE test_id=?", (test_id,))
+    scales = cursor.fetchall()
+
+    # ===== QUESTIONS =====
+    cursor.execute("""
+        SELECT * FROM questions
+        WHERE test_id=?
+        ORDER BY order_num
+    """, (test_id,))
+    questions = cursor.fetchall()
+
+    # ===== ANSWERS =====
+    cursor.execute("""
+        SELECT * FROM answer_options
+        WHERE question_id IN (
+            SELECT id FROM questions WHERE test_id=?
+        )
+    """, (test_id,))
+    answers = cursor.fetchall()
+
+    # ===== INTERPRETATIONS (ВАЖНО ДОБАВИТЬ) =====
+    cursor.execute("""
+        SELECT si.*
+        FROM scale_interpretation si
+        JOIN scales s ON si.scale_id = s.id
+        WHERE s.test_id = ?
+    """, (test_id,))
+    interpretations = cursor.fetchall()
+    
+
+    return render_template(
+        "teacher/edit_test.html",
+        mode="edit",
+        test_id=test_id,
+
+        test=dict(test),
+        scales=[dict(s) for s in scales],
+        questions=[dict(q) for q in questions],
+        answers=[dict(a) for a in answers],
+        interpretations=[dict(i) for i in interpretations]
+    )
+
+@app.route('/teacher/update_test/<int:test_id>', methods=['POST'])
+def update_test(test_id):
+
+    data = request.get_json()
+    db = get_db()
+    cursor = db.cursor()
+
+    try:
+        # ===== UPDATE TEST =====
+        cursor.execute("""
+            UPDATE tests
+            SET title=?, description=?, instruction=?, topic=?
+            WHERE id=?
+        """, (
+            data.get('title'),
+            data.get('description'),
+            data.get('instruction', ''),
+            data.get('topic'),
+            test_id
+        ))
+
+        # ===== DELETE OLD DATA (ВАЖНО ДЛЯ ТВОЕЙ СХЕМЫ) =====
+
+        # answers
+        cursor.execute("""
+            DELETE FROM answer_options
+            WHERE question_id IN (
+                SELECT id FROM questions WHERE test_id=?
+            )
+        """, (test_id,))
+
+        # questions
+        cursor.execute("DELETE FROM questions WHERE test_id=?", (test_id,))
+
+        # interpretations
+        cursor.execute("""
+            DELETE FROM scale_interpretation
+            WHERE scale_id IN (
+                SELECT id FROM scales WHERE test_id=?
+            )
+        """, (test_id,))
+
+        # scales
+        cursor.execute("DELETE FROM scales WHERE test_id=?", (test_id,))
+
+        # ===== INSERT SCALES =====
+        scale_ids = []
+
+        for s in data.get('scales', []):
+            cursor.execute("""
+                INSERT INTO scales (name, max_score, test_id)
+                VALUES (?, ?, ?)
+            """, (
+                s.get('name'),
+                s.get('max'),
+                test_id
+            ))
+            scale_ids.append(cursor.lastrowid)
+
+        # ===== INSERT QUESTIONS + ANSWERS =====
+        for i, q in enumerate(data.get('questions', [])):
+
+            scale_id = scale_ids[q.get('scale', 0)]
+
+            cursor.execute("""
+                INSERT INTO questions (test_id, question, order_num, scale_id)
+                VALUES (?, ?, ?, ?)
+            """, (
+                test_id,
+                q.get('text'),
+                i,
+                scale_id
+            ))
+
+            question_id = cursor.lastrowid
+
+            for a in q.get('answers', []):
+                cursor.execute("""
+                    INSERT INTO answer_options (question_id, answer_text, score)
+                    VALUES (?, ?, ?)
+                """, (
+                    question_id,
+                    a.get('text'),
+                    a.get('score', 0)
+                ))
+
+        # ===== INTERPRETATIONS =====
+        for block in data.get('interpretations', []):
+
+            # scale_id = scale_ids[block.get('scale_index', 0)]
+            # scale_id = block.get('scale_id')
+            scale_index = block.get('scale_index', 0)
+            scale_id = scale_ids[scale_index]
+
+            for r in block.get('ranges', []):
+
+                cursor.execute("""
+                    INSERT INTO scale_interpretation
+                    (scale_id, min_score, max_score, title, description)
+                    VALUES (?, ?, ?, ?, ?)
+                """, (
+                    scale_id,
+                    r.get('min'),
+                    r.get('max'),
+                    r.get('title'),
+                    r.get('desc')
+                ))
+
+        db.commit()
+
+        return {"success": True}
+
+    except Exception as e:
+        db.rollback()
+        return {"success": False, "error": str(e)}
+
+@app.route('/teacher/group_results')
+def teacher_results():
+
+    if 'user_id' not in session:
+        return redirect('/login')
+
+    teacher_id = session['user_id']
+
+    conn = sqlite3.connect('database.db')
+    conn.row_factory = sqlite3.Row
+
+    cursor = conn.cursor()
+
+    # -----------------------------
+    # ГРУППЫ ПРЕПОДА
+    # -----------------------------
+
+    cursor.execute("""
+        SELECT
+            g.id,
+            g.name,
+            COUNT(gs.user_id) as students_count
+
+        FROM groups g
+
+        LEFT JOIN group_students gs
+            ON g.id = gs.group_id
+
+        WHERE g.teacher_id = ?
+
+        GROUP BY g.id
+    """, (teacher_id,))
+
+    groups = [dict(g) for g in cursor.fetchall()]
+
+    # -----------------------------
+    # ДЛЯ КАЖДОЙ ГРУППЫ
+    # -----------------------------
+
+    for group in groups:
+
+        group_id = group["id"]
+
+        # -----------------------------
+        # ТЕСТЫ ГРУППЫ
+        # -----------------------------
+
+        cursor.execute("""
+            SELECT
+                t.id,
+                t.title,
+                t.topic
+
+            FROM group_tests gt
+
+            JOIN tests t
+                ON gt.test_id = t.id
+
+            WHERE gt.group_id = ?
+        """, (group_id,))
+
+        tests = [dict(t) for t in cursor.fetchall()]
+
+        # -----------------------------
+        # ДЛЯ КАЖДОГО ТЕСТА
+        # -----------------------------
+
+        for test in tests:
+
+            test_id = test["id"]
+
+            # -----------------------------
+            # РЕЗУЛЬТАТЫ СТУДЕНТОВ
+            # -----------------------------
+
+            cursor.execute("""
+                SELECT
+                    u.username,
+                    ua.attempt_date,
+                    SUM(ur.score) as score
+
+                FROM user_attempts ua
+
+                JOIN users u
+                    ON ua.user_id = u.id
+
+                JOIN user_results ur
+                    ON ua.id = ur.attempt_id
+
+                WHERE ua.test_id = ?
+                AND ua.user_id IN (
+
+                    SELECT user_id
+                    FROM group_students
+                    WHERE group_id = ?
+
+                )
+
+                GROUP BY ua.id
+
+                ORDER BY ua.attempt_date DESC
+            """, (test_id, group_id))
+
+            test["results"] = cursor.fetchall()
+
+            # -----------------------------
+            # ПРОЦЕНТ ПРОШЕДШИХ
+            # -----------------------------
+
+            cursor.execute("""
+                SELECT COUNT(DISTINCT user_id)
+                FROM group_students
+                WHERE group_id = ?
+            """, (group_id,))
+
+            total_students = cursor.fetchone()[0]
+
+            cursor.execute("""
+                SELECT COUNT(DISTINCT ua.user_id)
+
+                FROM user_attempts ua
+
+                WHERE ua.test_id = ?
+                AND ua.user_id IN (
+
+                    SELECT user_id
+                    FROM group_students
+                    WHERE group_id = ?
+
+                )
+            """, (test_id, group_id))
+
+            completed_students = cursor.fetchone()[0]
+
+            if total_students > 0:
+
+                percent = round(
+                    (completed_students / total_students) * 100
+                )
+
+            else:
+                percent = 0
+
+            test["completed_percent"] = percent
+
+        group["tests"] = tests
+
+    conn.close()
+
+    return render_template(
+        'teacher/group_results.html',
+        username=session['username'],
+        groups=groups
+    )
+
+
+#групповые тесты
+@app.route('/group_tests')
+def student_group_tests():
+
+    # проверка авторизации
+    if 'user_id' not in session:
+        return redirect('/login')
+
+    user_id = session['user_id']
+    username = session['username']
+
+    conn = sqlite3.connect('database.db')
+    conn.row_factory = sqlite3.Row
+
+    cursor = conn.cursor()
+
+    # -----------------------------
+    # ГРУППЫ ПОЛЬЗОВАТЕЛЯ
+    # -----------------------------
+
+    cursor.execute("""
+        SELECT 
+            g.id,
+            g.name,
+            COUNT(gt.test_id) as tests_count
+
+        FROM groups g
+
+        LEFT JOIN group_students gs 
+            ON g.id = gs.group_id
+
+        LEFT JOIN group_tests gt
+            ON g.id = gt.group_id
+
+        WHERE gs.user_id = ?
+
+        GROUP BY g.id
+    """, (user_id,))
+
+    groups = cursor.fetchall()
+
+    # -----------------------------
+    # ГРУППОВЫЕ ТЕСТЫ
+    # -----------------------------
+
+    cursor.execute("""
+        SELECT
+            t.id,
+            t.title,
+            t.topic,
+            t.description,
+            g.name as group_name
+
+        FROM group_students gs
+
+        JOIN group_tests gt
+            ON gs.group_id = gt.group_id
+
+        JOIN tests t
+            ON gt.test_id = t.id
+
+        JOIN groups g
+            ON g.id = gs.group_id
+
+        WHERE gs.user_id = ?
+    """, (user_id,))
+
+    tests = cursor.fetchall()
+
+    conn.close()
+
+    return render_template(
+        'group_tests.html',
+        username=username,
+        groups=groups,
+        tests=tests
+    )
+
+@app.route('/student/join_group', methods=['POST'])
+def join_group():
+
+    # проверка авторизации
+    if 'user_id' not in session:
+        return redirect('/login')
+
+    user_id = session['user_id']
+
+    # получаем код
+    code = request.form.get('code', '').strip().upper()
+
+    # проверка пустого поля
+    if not code:
+        return redirect('/groups')
+
+    conn = sqlite3.connect('database.db')
+    conn.row_factory = sqlite3.Row
+
+    cursor = conn.cursor()
+
+    # -----------------------------
+    # ИЩЕМ ГРУППУ ПО КОДУ
+    # -----------------------------
+
+    cursor.execute("""
+        SELECT id
+        FROM groups
+        WHERE invite_code = ?
+    """, (code,))
+
+    group = cursor.fetchone()
+
+    # если группа не найдена
+    if not group:
+        conn.close()
+        return redirect('/groups')
+
+    group_id = group['id']
+
+    # -----------------------------
+    # ПРОВЕРЯЕМ:
+    # УЖЕ СОСТОИТ В ГРУППЕ?
+    # -----------------------------
+
+    cursor.execute("""
+        SELECT id
+        FROM group_students
+        WHERE group_id = ?
+        AND user_id = ?
+    """, (group_id, user_id))
+
+    existing = cursor.fetchone()
+
+    # если уже состоит
+    if existing:
+        conn.close()
+        return redirect('/groups')
+
+    # -----------------------------
+    # ДОБАВЛЯЕМ В ГРУППУ
+    # -----------------------------
+
+    cursor.execute("""
+        INSERT INTO group_students (
+            group_id,
+            user_id
+        )
+        VALUES (?, ?)
+    """, (
+        group_id,
+        user_id
+    ))
+
+    conn.commit()
+    conn.close()
+
+    return redirect('/groups')
 
 # ПРОХОЖДЕНИЕ ТЕСТА И РЕЗУЛЬТАТ
 

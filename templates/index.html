@@ -17,7 +17,10 @@
         <a href="/" class="active">Каталог тестов</a>
         <a href="/completed">Пройденные тесты</a>
         <a href="/portrait">Цифровой портрет</a>
+        <a href="/group_tests">Групповые тесты</a>
     </nav>
+
+
 
     <div class="user-panel">
         {% if username %}
@@ -32,7 +35,6 @@
 <main>
     <!-- <h2>Групповые тесты</h2>. добавить логику, если есть, показываем блок -->
     <h2>Все тесты</h2>
-
     {% for topic, test_list in tests.items() %}
         <div class="category">
             <h3>{{ topic }}</h3>

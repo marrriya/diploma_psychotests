@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Группы преподавателя</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/main.css') }}">
+</head>
+
+<body>
+
+<header class="header">
+
+    <div class="logo">MindScape</div>
+
+    <nav class="nav">
+        <a href="/teacher/teach">Каталог тестов</a>
+        <a href="/teacher/groups" class="active">Ваши группы</a>
+        <a href="/teacher/group_results">Результаты тестирования</a>
+    </nav>
+
+    <div class="user-panel">
+        <span class="username">
+            Привет, {{ username }}
+        </span>
+
+        <a href="/logout" class="logout">
+            Выйти
+        </a>
+    </div>
+
+</header>
+
+
+<main class="container">
+
+    <!-- СОЗДАНИЕ ГРУППЫ -->
+
+    <section class="create-group-section">
+
+        <h2>Создать группу</h2>
+
+        <form method="POST"
+              action="/teacher/create_group"
+              class="create-group-form">
+
+            <input
+                type="text"
+                name="group_name"
+                placeholder="Название группы"
+                required
+            >
+
+            <button type="submit" class="btn">
+                Создать группу
+            </button>
+
+        </form>
+
+    </section>
+
+
+    <!-- СПИСОК ГРУПП -->
+
+    <section class="groups-section">
+
+        <h2>Ваши группы</h2>
+
+        {% if groups %}
+
+            <div class="groups">
+
+                {% for group in groups %}
+
+                    <div class="group-card">
+
+                        <!-- НАЗВАНИЕ -->
+
+                        <div class="group-title">
+                            {{ group.name }}
+                        </div>
+
+                        <!-- ИНФОРМАЦИЯ -->
+
+                        <div class="group-info">
+
+                            <div>
+                                Студентов:
+                                {{ group.students_count }}
+                            </div>
+
+                            <div>
+                                Код группы:
+                                <b>{{ group.invite_code }}</b>
+                            </div>
+
+                        </div>
+
+
+                        <!-- НАЗНАЧЕНИЕ ТЕСТА -->
+
+                        <div class="assign-test-section">
+
+                            <form method="POST"
+                                  action="/teacher/assign_test">
+
+                                <input
+                                    type="hidden"
+                                    name="group_id"
+                                    value="{{ group.id }}"
+                                >
+
+                                <!-- <select name="test_id" required>
+
+                                    <option value="">
+                                        Выберите тест
+                                    </option>
+
+                                    {% for test in tests %}
+
+                                        <option value="{{ test.id }}">
+                                            {{ test.title }}
+                                        </option>
+
+                                    {% endfor %}
+
+                                </select> -->
+                                <div class="assign-test-section">
+
+    <form method="POST"
+          action="/teacher/assign_test">
+
+        <input
+            type="hidden"
+            name="group_id"
+            value="{{ group.id }}"
+        >
+
+        <!-- ПОИСК ТЕСТА -->
+
+        <input
+            type="text"
+            name="test_title"
+            list="tests-list-{{ group.id }}"
+            placeholder="Введите название теста"
+            required
+        >
+
+        <!-- СПИСОК ТЕСТОВ -->
+
+        <datalist id="tests-list-{{ group.id }}">
+
+            {% for test in tests %}
+
+                <!-- <option value="{{ test.title }}"> -->
+                    <option value="{{ test.title }}">
+                {{ test.topic }}
+            </option>
+
+            {% endfor %}
+
+        </datalist>
+
+        <button type="submit" class="btn">
+            Назначить тест
+        </button>
+
+    </form>
+
+</div>
+                                <!-- <button type="submit" class="btn">
+                                    Назначить тест
+                                </button> -->
+
+                            </form>
+
+                        </div>
+
+
+                        <!-- НАЗНАЧЕННЫЕ ТЕСТЫ -->
+
+                        <div class="assigned-tests">
+
+                            <h4>Назначенные тесты</h4>
+
+                            {% if group.assigned_tests %}
+
+                                <ul>
+
+                                    {% for assigned_test in group.assigned_tests %}
+
+                                        <li>
+                                            {{ assigned_test.title }}
+                                        </li>
+
+                                    {% endfor %}
+
+                                </ul>
+
+                            {% else %}
+
+                                <div class="empty-text">
+                                    Пока нет назначенных тестов
+                                </div>
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <!-- КНОПКИ -->
+
+                        <div class="group-actions">
+
+                            <a href="/teacher/group/{{ group.id }}"
+                               class="btn">
+
+                                Открыть
+
+                            </a>
+
+                            <a href="/teacher/delete_group/{{ group.id }}"
+                               class="btn danger">
+
+                                Удалить
+
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <div class="empty-block">
+                У вас пока нет групп
+            </div>
+
+        {% endif %}
+
+    </section>
+
+</main>
+
+</body>
+</html>

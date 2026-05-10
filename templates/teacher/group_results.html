@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Результаты тестирования</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style/main.css') }}">
+</head>
+
+<body>
+
+<header class="header">
+
+    <div class="logo">MindScape</div>
+
+    <nav class="nav">
+        <a href="/teacher/teach">Каталог тестов</a>
+        <a href="/teacher/groups">Ваши группы</a>
+        <a href="/teacher/group_results" class="active">
+            Результаты тестирования
+        </a>
+    </nav>
+
+    <div class="user-panel">
+        <span class="username">
+            Привет, {{ username }}
+        </span>
+
+        <a href="/logout" class="logout">
+            Выйти
+        </a>
+    </div>
+
+</header>
+
+
+<main class="container">
+
+    <h1>Результаты групп</h1>
+
+    {% if groups %}
+
+        {% for group in groups %}
+
+            <section class="group-results-section">
+
+                <!-- ГРУППА -->
+
+                <div class="group-header">
+
+                    <h2>{{ group.name }}</h2>
+
+                    <div class="group-meta">
+                        Студентов: {{ group.students_count }}
+                    </div>
+
+                </div>
+
+                <!-- ТЕСТЫ -->
+
+                {% if group.tests %}
+
+                    {% for test in group.tests %}
+
+                        <div class="test-results-card">
+
+                            <!-- ИНФОРМАЦИЯ О ТЕСТЕ -->
+
+                            <div class="test-header">
+
+                                <div>
+
+                                    <div class="test-topic">
+                                        {{ test.topic }}
+                                    </div>
+
+                                    <div class="test-title">
+                                        {{ test.title }}
+                                    </div>
+
+                                </div>
+
+                                <!-- ПРОЦЕНТ ПРОШЕДШИХ -->
+
+                                <div class="completion-block">
+
+                                    <div class="completion-label">
+                                        Прошли тест
+                                    </div>
+
+                                    <div class="completion-value">
+                                        {{ test.completed_percent }}%
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- РЕЗУЛЬТАТЫ СТУДЕНТОВ -->
+
+                            {% if test.results %}
+
+                                <table class="results-table">
+
+                                    <thead>
+
+                                        <tr>
+                                            <th>Username</th>
+                                            <th>Дата</th>
+                                            <th>Баллы</th>
+                                        </tr>
+
+                                    </thead>
+
+                                    <tbody>
+
+                                        {% for result in test.results %}
+
+                                            <tr>
+
+                                                <td>
+                                                    {{ result.username }}
+                                                </td>
+
+                                                <td>
+                                                    {{ result.attempt_date }}
+                                                </td>
+
+                                                <td>
+                                                    {{ result.score }}
+                                                </td>
+
+                                            </tr>
+
+                                        {% endfor %}
+
+                                    </tbody>
+
+                                </table>
+
+                            {% else %}
+
+                                <div class="empty-text">
+                                    Пока никто не прошёл тест
+                                </div>
+
+                            {% endif %}
+
+                        </div>
+
+                    {% endfor %}
+
+                {% else %}
+
+                    <div class="empty-text">
+                        Группе пока не назначены тесты
+                    </div>
+
+                {% endif %}
+
+            </section>
+
+        {% endfor %}
+
+    {% else %}
+
+        <div class="empty-block">
+            У вас пока нет групп
+        </div>
+
+    {% endif %}
+
+</main>
+
+</body>
+</html>

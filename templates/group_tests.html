@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Групповые тесты</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/main.css') }}">
+</head>
+
+<body>
+
+<header class="header">
+    <div class="logo">MindScape</div>
+
+    <nav class="nav">
+        <a href="/">Каталог тестов</a>
+        <a href="/group_tests" class="active">Групповые тесты</a>
+        <a href="/results">Мои результаты</a>
+    </nav>
+
+    <div class="user-panel">
+        <span class="username">Привет, {{ username }}</span>
+        <a href="/logout" class="logout">Выйти</a>
+    </div>
+</header>
+
+<main class="container">
+
+    <!-- ПОДКЛЮЧЕНИЕ К ГРУППЕ -->
+
+    <section class="join-group-section">
+
+        <h2>Вступить в группу</h2>
+
+        <form method="POST" action="/student/join_group" class="join-form">
+
+            <input
+                type="text"
+                name="code"
+                placeholder="Введите код группы"
+                required
+            >
+
+            <button type="submit" class="btn">
+                Присоединиться
+            </button>
+
+        </form>
+
+    </section>
+
+
+    <!-- СПИСОК ГРУПП -->
+
+    <section class="groups-section">
+
+        <h2>Ваши группы</h2>
+
+        {% if groups %}
+
+            <div class="groups-grid">
+
+                {% for group in groups %}
+
+                    <div class="group-card">
+
+                        <div class="group-title">
+                            {{ group.name }}
+                        </div>
+
+                        <div class="group-info">
+                            Назначено тестов:
+                            {{ group.tests_count }}
+                        </div>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <div class="empty-block">
+                Вы пока не состоите ни в одной группе
+            </div>
+
+        {% endif %}
+
+    </section>
+
+
+    <!-- ГРУППОВЫЕ ТЕСТЫ -->
+
+    <section class="group-tests-section">
+
+        <h2>Групповые тесты</h2>
+
+        <p class="section-subtitle">
+            Тесты, назначенные вашим группам
+        </p>
+
+        {% if tests %}
+
+            <div class="tests-grid">
+
+                {% for test in tests %}
+
+                    <div class="test-card">
+
+                        <div class="test-topic">
+                            {{ test.topic }}
+                        </div>
+
+                        <div class="test-title">
+                            {{ test.title }}
+                        </div>
+
+                        <div class="test-description">
+                            {{ test.description }}
+                        </div>
+
+                        <div class="group-badge">
+                            Группа: {{ test.group_name }}
+                        </div>
+
+                        <div class="test-actions">
+
+                            <a href="/test/{{ test.id }}" class="btn">
+                                Пройти тест
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <div class="empty-block">
+                Вам пока не назначили групповые тесты
+            </div>
+
+        {% endif %}
+
+    </section>
+
+</main>
+
+</body>
+</html>

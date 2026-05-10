@@ -20,11 +20,24 @@ function showStep(n) {
 }
 
 /* ===== SAFE REMOVE ===== */
+// function removeItem(btn) {
+//     const el = btn?.closest(".scale-item, .question-item");
+//     if (el) el.remove();
+
+//     updateScaleSelects();
+// }
 function removeItem(btn) {
     const el = btn?.closest(".scale-item, .question-item");
     if (el) el.remove();
 
     updateScaleSelects();
+
+    // 🔥 ДОБАВЬ ЭТО
+    rebuildInterpretationsSafe();
+}
+function rebuildInterpretationsSafe() {
+    const scales = getScalesFromDOM();
+    buildInterpretations(scales);
 }
 
 function removeAnswer(btn) {
@@ -117,6 +130,8 @@ function addQuestion() {
     $("#questions").appendChild(div);
 
     updateScaleSelects();
+    // addAnswer(div);
+    // addAnswer(div);
 }
 
 function addAnswer(block) {
@@ -169,6 +184,33 @@ function updateScaleSelects() {
 }
 
 /* ===== STEP 3 ===== */
+// function next3() {
+
+//     let ok = true;
+
+//     $$(".question-item").forEach(q => {
+
+//         const text = $(".question-text", q)?.value?.trim();
+//         const answers = $$(".answer-item", q);
+
+//         if (!text || answers.length < 1) ok = false;
+
+//         answers.forEach(a => {
+//             const t = $(".answer-text", a)?.value?.trim();
+//             const s = $(".answer-score", a)?.value;
+
+//             if (!t || s === "") ok = false;
+//         });
+//     });
+
+//     if (!ok) {
+//         alert("Заполните вопросы, ответы и баллы");
+//         return;
+//     }
+
+//     buildInterpretations();
+//     showStep(4);
+// }
 function next3() {
 
     let ok = true;
@@ -193,44 +235,187 @@ function next3() {
         return;
     }
 
-    buildInterpretations();
+    // 🔥 ВАЖНО
+    buildInterpretations(getScalesFromDOM());
+
     showStep(4);
+}
+function getScalesFromDOM() {
+    return $$(".scale-item").map((s, i) => ({
+        id: i, // временный id для create
+        name: $(".scale-name", s)?.value || "",
+        max_score: Number($(".scale-max", s)?.value || 0)
+    }));
 }
 
 /* ===== INTERPRETATIONS ===== */
-function buildInterpretations() {
+// function buildInterpretations() {
+
+//     const container = $("#interpretations");
+//     if (!container) return;
+
+//     container.innerHTML = "";
+
+//     $$(".scale-item").forEach((s, i) => {
+
+//         const name = $(".scale-name", s)?.value || "";
+//         const max = Number($(".scale-max", s)?.value || 0);
+
+//         const block = document.createElement("div");
+//         block.className = "interp-block";
+
+//         block.innerHTML = `
+//             <h3>${name}</h3>
+//             <div class="ranges" data-scale="${window.SCALES?.[i]?.id ?? i}" data-max="${max}"></div>
+//             <button type="button">+ добавить</button>
+//         `;
+
+//         const btn = block.querySelector("button");
+//         const ranges = $(".ranges", block);
+
+//         btn.onclick = () => addRange(ranges);
+
+//         container.appendChild(block);
+
+//         addRangeRow(ranges, 0, "", true, false);
+//         addRangeRow(ranges, "", max, false, true, true);
+//     });
+// }
+// function buildInterpretations() {
+
+//     const container = $("#interpretations");
+//     if (!container) return;
+
+//     container.innerHTML = "";
+
+//     SCALES.forEach(scale => {
+
+//         const block = document.createElement("div");
+//         block.className = "interp-block";
+
+//         block.innerHTML = `
+//             <h3>${scale.name}</h3>
+//             <div class="ranges" data-scale-id="${scale.id}" data-max="${scale.max_score}"></div>
+//             <button type="button">+ добавить</button>
+//         `;
+
+//         const ranges = block.querySelector(".ranges");
+
+//         block.querySelector("button").onclick = () => addRange(ranges);
+
+//         container.appendChild(block);
+
+//         // минимально 1 строка
+//         addRangeRow(ranges, 0, "", true, false);
+//         addRangeRow(ranges, "", scale.max_score, false, true, true);
+//     });
+// }
+// function buildInterpretationsFromData(scales, interpretations) {
+
+//     const container = $("#interpretations");
+//     container.innerHTML = "";
+
+//     const grouped = {};
+
+//     interpretations.forEach(i => {
+//         const key = String(i.scale_id);
+//         if (!grouped[key]) grouped[key] = [];
+//         grouped[key].push(i);
+//     });
+
+//     scales.forEach(scale => {
+
+//         const block = document.createElement("div");
+//         block.className = "interp-block";
+
+//         block.innerHTML = `
+//             <h3>${scale.name}</h3>
+//             <div class="ranges" data-scale-id="${scale.id}"></div>
+//             <button type="button">+ добавить</button>
+//         `;
+
+//         const ranges = block.querySelector(".ranges");
+
+//         block.querySelector("button").onclick = () => addRange(ranges);
+
+//         container.appendChild(block);
+
+//         const items = grouped[String(scale.id)] || [];
+
+//         if (!items.length) {
+//             addRangeRow(ranges, 0, "", true, false);
+//             addRangeRow(ranges, "", scale.max_score, false, true, true);
+//             return;
+//         }
+
+//         items.forEach(it => {
+//             addRangeRow(
+//                 ranges,
+//                 it.min_score,
+//                 it.max_score,
+//                 false,
+//                 false
+//             );
+
+//             const row = ranges.lastElementChild;
+
+//             $(".title", row).value = it.title || "";
+//             $(".desc", row).value = it.description || "";
+//         });
+//     });
+// }
+
+function buildInterpretations(scales, interpretations = null) {
 
     const container = $("#interpretations");
-    if (!container) return;
-
     container.innerHTML = "";
 
-    $$(".scale-item").forEach((s, i) => {
+    const grouped = {};
 
-        const name = $(".scale-name", s)?.value || "";
-        const max = Number($(".scale-max", s)?.value || 0);
+    if (interpretations) {
+        interpretations.forEach(i => {
+            const key = String(i.scale_id);
+            if (!grouped[key]) grouped[key] = [];
+            grouped[key].push(i);
+        });
+    }
+
+    scales.forEach(scale => {
 
         const block = document.createElement("div");
         block.className = "interp-block";
 
         block.innerHTML = `
-            <h3>${name}</h3>
-            <div class="ranges" data-scale="${i}" data-max="${max}"></div>
+            <h3>${scale.name}</h3>
+            <div class="ranges" data-scale-id="${scale.id}"></div>
             <button type="button">+ добавить</button>
         `;
 
-        const btn = block.querySelector("button");
-        const ranges = $(".ranges", block);
+        const ranges = block.querySelector(".ranges");
 
-        btn.onclick = () => addRange(ranges);
+        block.querySelector("button").onclick = () => addRange(ranges);
 
         container.appendChild(block);
 
-        addRangeRow(ranges, 0, "", true, false);
-        addRangeRow(ranges, "", max, false, true, true);
+        const items = grouped[String(scale.id)] || [];
+
+        if (!items.length) {
+            addRangeRow(ranges, 0, "", true, false);
+            addRangeRow(ranges, "", scale.max_score, false, true, true);
+            return;
+        }
+
+        items.forEach(it => {
+
+            addRangeRow(ranges, it.min_score, it.max_score);
+
+            const row = ranges.lastElementChild;
+
+            $(".title", row).value = it.title || "";
+            $(".desc", row).value = it.description || "";
+        });
     });
 }
-
 function addRange(container) {
     addRangeRow(container, "", "", false, false);
 }
@@ -378,11 +563,22 @@ function renderPreview() {
     /* ===== INTERPRETATIONS ===== */
     let interpHTML = "";
 
-    $$(".ranges").forEach(r => {
+    // $$(".ranges").forEach(r => {
 
-        const scaleIndex = r.dataset.scale;
-        const scaleName = $$(".scale-item")[scaleIndex]
-            ?.querySelector(".scale-name")?.value || "";
+        // const scaleIndex = r.dataset.scale;
+    $$(".ranges").forEach((r, i) => {
+
+        const scaleName = $$(".scale-item")[i]
+        ?.querySelector(".scale-name")?.value || "";
+
+
+        // const scaleId = r.getAttribute("data-scale-id");
+        // const scale = SCALES.find(s => String(s.id) === String(scaleId));
+        // const scaleName = scale?.name || "";
+
+
+        // const scaleName = $$(".scale-item")[scaleIndex]
+        //     ?.querySelector(".scale-name")?.value || "";
 
         let rowsHTML = "";
 
@@ -453,8 +649,11 @@ async function submitTest() {
                 }))
             })),
 
-            interpretations: $$(".ranges").map(r => ({
-                scale_index: Number(r.dataset.scale),
+            // interpretations: $$(".ranges").map(r => ({
+            //     // scale_index: Number(r.dataset.scale),
+            //     scale_id: Number(r.dataset.scaleId) || null,
+            interpretations: $$(".ranges").map((r, i) => ({
+                scale_index: i,
                 ranges: $$(".interp-row", r).map(row => ({
                     min: Number($(".min", row)?.value),
                     max: Number($(".max", row)?.value),
@@ -463,12 +662,21 @@ async function submitTest() {
                 }))
             }))
         };
+        const url = window.MODE === "edit"
+            ? `/teacher/update_test/${window.TEST_ID}`
+            : "/teacher/create_test_full";
 
-        const res = await fetch("/teacher/create_test_full", {
+        const res = await fetch(url, {
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify(payload)
         });
+
+        // const res = await fetch("/teacher/create_test_full", {
+        //     method: "POST",
+        //     headers: {"Content-Type": "application/json"},
+        //     body: JSON.stringify(payload)
+        // });
 
         const data = await res.json();
         console.log(data);
@@ -488,9 +696,79 @@ async function submitTest() {
     }
 }
 
-
 /* ===== ERRORS ===== */
 function setError(id, text = "Обязательное поле") {
     const el = document.getElementById(id);
     if (el) el.innerText = text;
 }
+function initEdit(data) {
+
+    const { test, scales, questions, answers, interpretations } = data;
+
+    /* ===== STEP 1 ===== */
+    $("#title").value = test.title || "";
+    $("#description").value = test.description || "";
+    $("#instruction").value = test.instruction || "";
+    $("#topic").value = test.topic || "";
+
+    /* ===== STEP 2 ===== */
+    $("#scales").innerHTML = "";
+
+    scales.forEach(s => {
+        addScale();
+
+        const last = $$(".scale-item").slice(-1)[0];
+
+        $(".scale-name", last).value = s.name || "";
+        $(".scale-max", last).value = s.max_score || "";
+    });
+
+    updateScaleSelects();
+
+    /* ===== STEP 3 ===== */
+    $("#questions").innerHTML = "";
+
+    questions.forEach(q => {
+
+        addQuestion();
+        const lastQ = $$(".question-item").slice(-1)[0];
+
+        $(".question-text", lastQ).value = q.question;
+
+        const scaleIndex = scales.findIndex(s => s.id == q.scale_id);
+        $(".question-scale", lastQ).value = scaleIndex;
+
+        answers
+            .filter(a => a.question_id == q.id)
+            .forEach(a => {
+
+                addAnswer(lastQ);
+
+                const lastA = $$(".answer-item", lastQ).slice(-1)[0];
+
+                $(".answer-text", lastA).value = a.answer_text;
+                $(".answer-score", lastA).value = a.score;
+            });
+    });
+
+    /* ===== STEP 4 ===== */
+    // buildInterpretationsFromData(scales, interpretations);
+    const normalizedScales = scales.map((s, i) => ({
+        ...s,
+        id: i
+    }));
+
+    buildInterpretations(normalizedScales, interpretations);
+    // buildInterpretations(scales, interpretations);
+}
+window.onload = function () {
+
+    if (window.MODE !== "edit") return;
+
+    const dataEl = document.getElementById("data");
+    if (!dataEl) return;
+
+    const data = JSON.parse(dataEl.textContent);
+
+    initEdit(data);
+};

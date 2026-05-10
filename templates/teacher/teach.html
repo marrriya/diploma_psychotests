@@ -15,7 +15,7 @@
     <nav class="nav">
         <a href="/teacher/teach" class="active">Каталог тестов</a>
         <a href="/teacher/groups">Ваши группы</a>
-        <a href="/teacher/results">Результаты тестирования</a>
+        <a href="/teacher/group_results">Результаты тестирования</a>
     </nav>
 
     <div class="user-panel">
@@ -31,43 +31,36 @@
 
     <div class="tests">
 
-        <!-- {% if teacher_tests %}
-            {% for test in teacher_tests %}
-                <a href="/test/{{ test.id }}" class="test-card">
-                    <div class="test-title">{{ test.title }}</div>
-                    <div class="test-desc">{{ test.description }}</div>
-                </a>
-            {% endfor %}
-
-            кнопка создания 
-            <div class="test-card create-card">
-                <div class="plus">+</div>
-                <div class="create-text">Создать тест</div>
-            </div>
-
-        {% else %}
-
-             если тестов нет 
-            <div class="test-card create-card">
-                <div class="plus">+</div>
-                <div class="create-text">Создать первый тест</div>
-            </div>
-
-        {% endif %}
-
-    </div> -->
     {% if teacher_tests %}
-            <!-- кнопка создания -->
         <a href="/teacher/create_test_page" class="test-card create-card">
             <div class="plus">+</div>
             <div class="create-text">Создать тест</div>
         </a>
+       
         {% for test in teacher_tests %}
-            <a href="/test/{{ test.id }}" class="test-card">
+            <!-- <a href="/test/{{ test.id }}" class="test-card">
                 <div class="test-title">{{ test.title }}</div>
+
+                
+                <div class="test-topic">{{ test.topic }}</div>
+
                 <div class="test-desc">{{ test.description }}</div>
-            </a>
+            </a> -->
+            <div class="test-card">
+                <a href="/test/{{ test.id }}" class="test-link"></a>
+
+                <div class="test-title">{{ test.title }}</div>
+                <div class="test-topic">{{ test.topic }}</div>
+                <div class="test-desc">{{ test.description }}</div>
+
+                <!-- КНОПКИ -->
+                <div class="test-actions">
+                    <a href="/teacher/edit_test/{{ test.id }}" class="btn edit-btn">✏️</a>
+                    <a href="/teacher/delete_test/{{ test.id }}" class="btn delete-btn">🗑</a>
+                </div>
+            </div>
         {% endfor %}
+
 
 
 

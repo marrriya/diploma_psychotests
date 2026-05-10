@@ -285,7 +285,7 @@ main {
 
 
 /* учитель */
-.create-card {
+/* .create-card {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -294,6 +294,17 @@ main {
 
     border: 2px dashed #4F7CFE;
     background: #f7f9ff;
+} */
+.group-card.create-card {
+        display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    cursor: pointer;
+
+    border: 2px dashed #4F7CFE;
+    background: #f7f9ff;
+
 }
 
 .create-card:hover {

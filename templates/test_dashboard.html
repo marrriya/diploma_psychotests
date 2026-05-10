@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Результаты теста</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body {
+  margin: 0;
+  font-family: Inter, Arial;
+  background: #f4f6f8;
+}
+
+/* HEADER */
+.header {
+  padding: 20px;
+  font-size: 22px;
+  font-weight: bold;
+}
+
+/* KPI */
+.kpi {
+  display: flex;
+  gap: 15px;
+  padding: 0 20px;
+}
+.kpi div {
+  background: white;
+  padding: 15px;
+  border-radius: 10px;
+  flex: 1;
+  text-align: center;
+}
+
+/* GRID */
+.main {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+  padding: 20px;
+}
+
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 15px;
+}
+
+canvas {
+  width: 100% !important;
+  height: 350px !important;
+}
+
+/* TABLE */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+td {
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+}
+
+tr:hover {
+  background: #f0f4ff;
+}
+
+/* INTERPRETATION */
+.text {
+  margin-top: 10px;
+  font-size: 14px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">Результаты психологического теста</div>
+
+<!-- KPI -->
+<div class="kpi" id="kpi"></div>
+
+<div class="main">
+
+  <!-- SCATTER -->
+  <div class="card">
+    <h3>Карта группы</h3>
+    <canvas id="scatter"></canvas>
+  </div>
+
+  <!-- PROFILE -->
+  <div class="card">
+    <h3 id="studentName">Профиль</h3>
+    <canvas id="radar"></canvas>
+    <div class="text" id="interpretation"></div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="card" style="grid-column: span 2;">
+    <h3>Ученики</h3>
+    <table id="table"></table>
+  </div>
+
+</div>
+
+<script>
+
+// ===== DATA =====
+const students = [
+  {name:"A1", e:12, n:8, p:6, l:14},
+  {name:"A2", e:15, n:5, p:7, l:12},
+  {name:"A3", e:8, n:14, p:10, l:9},
+  {name:"A4", e:10, n:10, p:8, l:11},
+  {name:"A5", e:6, n:16, p:9, l:10},
+  {name:"A6", e:14, n:7, p:6, l:13},
+  {name:"A7", e:9, n:12, p:7, l:10},
+  {name:"A8", e:11, n:9, p:6, l:12},
+  {name:"A9", e:7, n:15, p:11, l:8},
+  {name:"A10", e:13, n:6, p:5, l:14}
+];
+
+let current = students[0];
+
+// ===== KPI =====
+function renderKPI(){
+  const avg = k => Math.round(students.reduce((a,s)=>a+s[k],0)/students.length);
+
+  document.getElementById("kpi").innerHTML = `
+    <div>E<br><b>${avg('e')}</b></div>
+    <div>N<br><b>${avg('n')}</b></div>
+    <div>P<br><b>${avg('p')}</b></div>
+    <div>L<br><b>${avg('l')}</b></div>
+  `;
+}
+
+// ===== INTERPRET =====
+function interpret(s){
+  if(s.e > 12 && s.n < 10) return "Экстраверт, устойчив";
+  if(s.e > 12 && s.n >= 10) return "Импульсивный тип";
+  if(s.e <= 12 && s.n >= 10) return "Тревожный интроверт";
+  return "Сбалансированный профиль";
+}
+
+// ===== SCATTER =====
+const scatter = new Chart(document.getElementById('scatter'), {
+  type: 'scatter',
+  data: {
+    datasets: [{
+      data: students.map(s => ({x:s.e, y:s.n})),
+      backgroundColor: 'black'
+    }]
+  },
+  options: {
+    onClick: (e, el)=>{
+      if(el.length){
+        current = students[el[0].index];
+        update();
+      }
+    },
+    scales:{
+      x:{min:0,max:20,title:{display:true,text:"Экстраверсия"}},
+      y:{min:0,max:20,title:{display:true,text:"Нейротизм"}}
+    }
+  }
+});
+
+// ===== RADAR =====
+// const radar = new Chart(document.getElementById('radar'), {
+//   type:'radar',
+//   data:{
+//     labels:["E","N","P","L"],
+//     datasets:[{
+//       data:[0,0,0,0],
+//       backgroundColor:"rgba(0,0,0,0.1)",
+//       borderColor:"black"
+//     }]
+//   },
+//   options:{
+//     scales:{ r:{min:0,max:20} }
+//   }
+// });
+// ===== CUSTOM RADIAL GRAPH =====
+
+function createRadialData(student){
+
+  // значения шкал
+  const values = [
+    student.e,
+    student.n,
+    student.p,
+    student.l
+  ];
+
+  // цвета шкал
+  const colors = [
+    "red",
+    "blue",
+    "green",
+    "purple"
+  ];
+
+  return {
+    values,
+    colors
+  };
+}
+
+const radialData = createRadialData(current);
+
+// const radar = new Chart(document.getElementById('radar'), {
+
+//   type: 'radar',
+
+//   data: {
+//     labels: ["E", "N", "P", "L", "A"],
+
+//     datasets: [
+
+//       // Основные точки
+//       {
+//         data: radialData.values,
+//         showLine: false,
+//         pointBackgroundColor: radialData.colors,
+//         pointRadius: 6
+//       },
+
+//       // Лучи из точек
+//       ...radialData.values.flatMap((value, i) => {
+
+//         let datasets = [];
+
+//         for(let s = 1; s <= value; s++){
+
+//           let arr = new Array(radialData.values.length).fill(null);
+//           arr[i] = s;
+
+//           datasets.push({
+//             data: arr,
+//             showLine: false,
+//             pointRadius: 5,
+//             pointBackgroundColor: radialData.colors[i]
+//           });
+//         }
+
+//         return datasets;
+//       })
+//     ]
+//   },
+
+//   options: {
+
+//     responsive: true,
+//     maintainAspectRatio: false,
+
+//     scales: {
+//       r: {
+
+//         beginAtZero: true,
+//         suggestedMax: 20,
+
+//         grid: {
+//           circular: true,
+//           color: 'rgba(0,0,0,0.08)'
+//         },
+
+//         angleLines: {
+//           display: false
+//         },
+
+//         ticks: {
+//           display: false
+//         },
+
+//         pointLabels: {
+//           display: true,
+//           font: {
+//             size: 14
+//           }
+//         }
+//       }
+//     },
+
+//     plugins: {
+//       legend: {
+//         display: false
+//       }
+//     }
+//   },
+
+//   plugins: [{
+
+//     // Центральный круг
+//     id: 'centerCircle',
+
+//     afterDraw(chart) {
+
+//       const {
+//         ctx,
+//         chartArea: {
+//           left,
+//           right,
+//           top,
+//           bottom
+//         }
+//       } = chart;
+
+//       const x = (left + right) / 2;
+//       const y = (top + bottom) / 2;
+
+//       ctx.save();
+
+//       ctx.beginPath();
+//       ctx.arc(x, y, 38, 0, Math.PI * 2);
+
+//       ctx.fillStyle = 'white';
+//       ctx.fill();
+
+//       ctx.lineWidth = 2;
+//       ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+//       ctx.stroke();
+
+//       ctx.restore();
+//     }
+//   }]
+// });
+
+// ===== TABLE =====
+
+const scaleColors = {
+  e: "red",
+  n: "blue",
+  p: "green",
+  l: "purple"
+};
+
+const radar = new Chart(document.getElementById('radar'), {
+
+  type: 'radar',
+
+  data: {
+
+    // оси = ученики
+    labels: students.map(s => s.name),
+
+    datasets: [
+      {
+        data: students.map(() => 0),
+
+        // скрываем стандартный radar
+        showLine: false,
+        pointRadius: 0,
+        borderWidth: 0
+      }
+    ]
+  },
+
+  options: {
+
+    responsive: true,
+    maintainAspectRatio: false,
+
+    scales: {
+      r: {
+
+        beginAtZero: true,
+        suggestedMax: 20,
+
+        grid: {
+          circular: true,
+          color: 'rgba(0,0,0,0.08)'
+        },
+
+        angleLines: {
+          color: 'rgba(0,0,0,0.1)'
+        },
+
+        ticks: {
+          display: false
+        },
+
+        pointLabels: {
+          display: true,
+          font: {
+            size: 13
+          }
+        }
+      }
+    },
+
+    plugins: {
+      legend: {
+        display: false
+      }
+    }
+  },
+
+  plugins: [
+
+    // ===== ЦЕНТР =====
+    {
+      id: 'centerCircle',
+
+      afterDraw(chart) {
+
+        const {
+          ctx,
+          chartArea: {
+            left,
+            right,
+            top,
+            bottom
+          }
+        } = chart;
+
+        const x = (left + right) / 2;
+        const y = (top + bottom) / 2;
+
+        ctx.save();
+
+        ctx.beginPath();
+        ctx.arc(x, y, 28, 0, Math.PI * 2);
+
+        ctx.fillStyle = 'white';
+        ctx.fill();
+
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+        ctx.stroke();
+
+        ctx.restore();
+      }
+    },
+
+    // ===== КАСТОМНЫЕ ТОЧКИ =====
+    {
+      id: 'customPoints',
+
+      afterDraw(chart) {
+
+        const {
+          ctx,
+          scales: { r }
+        } = chart;
+
+        const meta = chart.getDatasetMeta(0);
+
+        students.forEach((student, i) => {
+
+          const angle = meta.data[i].angle;
+
+          const scalesData = [
+            { value: student.e, color: scaleColors.e },
+            { value: student.n, color: scaleColors.n },
+            { value: student.p, color: scaleColors.p },
+            { value: student.l, color: scaleColors.l }
+          ];
+
+          scalesData.forEach(scale => {
+
+            const radius = r.getDistanceFromCenterForValue(scale.value);
+
+            const x =
+              r.xCenter + Math.cos(angle) * radius;
+
+            const y =
+              r.yCenter + Math.sin(angle) * radius;
+
+            ctx.beginPath();
+
+            ctx.arc(x, y, 6, 0, Math.PI * 2);
+
+            ctx.fillStyle = scale.color;
+            ctx.fill();
+          });
+        });
+      }
+    }
+  ]
+});
+
+
+function renderTable(){
+  let html = "";
+  students.forEach((s,i)=>{
+    html += `<tr onclick="selectStudent(${i})">
+      <td>${s.name}</td>
+      <td>${s.e}</td>
+      <td>${s.n}</td>
+      <td>${s.p}</td>
+      <td>${s.l}</td>
+    </tr>`;
+  });
+  document.getElementById("table").innerHTML = html;
+}
+
+// ===== UPDATE =====
+// function update(){
+//   radar.data.datasets[0].data = [current.e,current.n,current.p,current.l];
+//   radar.update();
+
+//   document.getElementById("studentName").innerText = current.name;
+//   document.getElementById("interpretation").innerText = interpret(current);
+// }
+// ===== UPDATE =====
+function update(){
+
+  const radialData = createRadialData(current);
+
+  radar.data.datasets = [
+
+    // Основные точки
+    {
+      data: radialData.values,
+      showLine: false,
+      pointBackgroundColor: radialData.colors,
+      pointRadius: 6
+    },
+
+    // Лучи
+    ...radialData.values.flatMap((value, i) => {
+
+      let datasets = [];
+
+      for(let s = 1; s <= value; s++){
+
+        let arr = new Array(radialData.values.length).fill(null);
+        arr[i] = s;
+
+        datasets.push({
+          data: arr,
+          showLine: false,
+          pointRadius: 5,
+          pointBackgroundColor: radialData.colors[i]
+        });
+      }
+
+      return datasets;
+    })
+  ];
+
+  radar.update();
+
+  document.getElementById("studentName").innerText = current.name;
+
+  document.getElementById("interpretation").innerText =
+    interpret(current);
+}
+
+function selectStudent(i){
+  current = students[i];
+  update();
+}
+
+// INIT
+renderKPI();
+renderTable();
+update();
+
+</script>
+
+</body>
+</html>

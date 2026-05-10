@@ -1,0 +1,711 @@
+```html
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Dashboard результатов</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+
+body{
+    margin:0;
+    padding:40px;
+    background:#f4f6fb;
+    font-family:Arial,sans-serif;
+    color:#1e293b;
+}
+
+h1{
+    margin-bottom:10px;
+}
+
+.subtitle{
+    color:#64748b;
+    margin-bottom:30px;
+}
+
+.dashboard{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(420px,1fr));
+    gap:24px;
+}
+
+.card{
+    background:white;
+    border-radius:24px;
+    padding:24px;
+    box-shadow:0 4px 20px rgba(0,0,0,0.06);
+}
+
+.big-card{
+    grid-column:1/-1;
+}
+
+.card h2{
+    margin-top:0;
+    margin-bottom:20px;
+    font-size:24px;
+}
+
+/* =========================
+   PROGRESS TOP
+========================= */
+
+.main-progress{
+    background:white;
+    border-radius:24px;
+    padding:28px;
+    margin-bottom:30px;
+    box-shadow:0 4px 20px rgba(0,0,0,0.06);
+}
+
+.progress-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:16px;
+}
+
+.progress-title{
+    font-size:24px;
+    font-weight:bold;
+}
+
+.progress-value{
+    font-size:22px;
+    font-weight:bold;
+    color:#22c55e;
+}
+
+.progress-bar{
+    width:100%;
+    height:22px;
+    background:#e2e8f0;
+    border-radius:999px;
+    overflow:hidden;
+}
+
+.progress-fill{
+    height:100%;
+    width:79%;
+    background:#22c55e;
+    border-radius:999px;
+}
+
+/* =========================
+   KPI
+========================= */
+
+.kpi-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:20px;
+}
+
+.kpi{
+    background:white;
+    border-radius:22px;
+    padding:24px;
+    box-shadow:0 4px 20px rgba(0,0,0,0.06);
+}
+
+.kpi-label{
+    color:#64748b;
+    font-size:15px;
+}
+
+.kpi-value{
+    font-size:42px;
+    font-weight:bold;
+    margin-top:12px;
+}
+
+/* =========================
+   SCATTER
+========================= */
+
+.scatter-wrapper{
+    height:420px;
+}
+
+/* =========================
+   SCALE DISTRIBUTION
+========================= */
+
+.scale-card{
+    background:#f8fafc;
+    border-radius:18px;
+    padding:18px;
+    margin-bottom:18px;
+}
+
+.scale-title{
+    font-size:20px;
+    font-weight:bold;
+    margin-bottom:20px;
+}
+
+.progress-wrapper{
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+}
+
+.progress-row{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+}
+
+.progress-label{
+    display:flex;
+    justify-content:space-between;
+}
+
+.small-progress{
+    width:100%;
+    height:14px;
+    background:#e2e8f0;
+    border-radius:999px;
+    overflow:hidden;
+}
+
+.small-fill{
+    height:100%;
+    border-radius:999px;
+}
+
+.green{
+    background:#22c55e;
+}
+
+.orange{
+    background:#f59e0b;
+}
+
+.red{
+    background:#ef4444;
+}
+
+/* =========================
+   RISK
+========================= */
+
+.student-list{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+}
+
+.student-item{
+    background:#fff5f5;
+    border-radius:16px;
+    padding:18px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.badges{
+    display:flex;
+    gap:10px;
+}
+
+.badge{
+    padding:8px 14px;
+    border-radius:999px;
+    font-size:14px;
+    font-weight:bold;
+}
+
+.badge.red{
+    background:#fecaca;
+    color:#991b1b;
+}
+
+.badge.orange{
+    background:#fde68a;
+    color:#92400e;
+}
+
+/* =========================
+   HEATMAP
+========================= */
+
+.heatmap-table{
+    width:100%;
+    border-collapse:collapse;
+    overflow:hidden;
+    border-radius:16px;
+}
+
+.heatmap-table th{
+    background:#e2e8f0;
+    padding:16px;
+    text-align:center;
+}
+
+.heatmap-table td{
+    padding:18px;
+    text-align:center;
+    font-weight:bold;
+    font-size:18px;
+}
+
+.low{
+    background:#bbf7d0;
+}
+
+.medium{
+    background:#fde68a;
+}
+
+.high{
+    background:#fecaca;
+}
+
+.legend{
+    display:flex;
+    gap:20px;
+    margin-top:20px;
+    flex-wrap:wrap;
+}
+
+.legend-item{
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+
+.legend-color{
+    width:18px;
+    height:18px;
+    border-radius:4px;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>Dashboard результатов группы</h1>
+
+<div class="subtitle">
+Тест: Диагностика тревожности студентов
+</div>
+
+<!-- ======================
+     MAIN PROGRESS
+====================== -->
+
+<div class="main-progress">
+
+    <div class="progress-top">
+
+        <div class="progress-title">
+            Прохождение теста
+        </div>
+
+        <div class="progress-value">
+            79%
+        </div>
+
+    </div>
+
+    <div class="progress-bar">
+        <div class="progress-fill"></div>
+    </div>
+
+</div>
+
+<!-- ======================
+     KPI
+====================== -->
+
+<div class="kpi-grid">
+
+    <div class="kpi">
+        <div class="kpi-label">
+            Студентов в группе
+        </div>
+
+        <div class="kpi-value">
+            24
+        </div>
+    </div>
+
+    <div class="kpi">
+        <div class="kpi-label">
+            Прошли тест
+        </div>
+
+        <div class="kpi-value">
+            19
+        </div>
+    </div>
+
+    <div class="kpi">
+        <div class="kpi-label">
+            Средняя тревожность
+        </div>
+
+        <div class="kpi-value">
+            46
+        </div>
+    </div>
+
+    <div class="kpi">
+        <div class="kpi-label">
+            Средняя стрессоустойчивость
+        </div>
+
+        <div class="kpi-value">
+            61
+        </div>
+    </div>
+
+</div>
+
+<br>
+
+<div class="dashboard">
+
+    <!-- SCATTER -->
+
+    <div class="card">
+
+        <h2>Scatter Plot результатов студентов</h2>
+
+        <div class="scatter-wrapper">
+            <canvas id="scatterChart"></canvas>
+        </div>
+
+    </div>
+
+    <!-- DISTRIBUTION -->
+
+    <div class="card">
+
+        <h2>Распределение уровней по шкалам</h2>
+
+        <!-- SCALE 1 -->
+
+        <div class="scale-card">
+
+            <div class="scale-title">
+                Тревожность
+            </div>
+
+            <div class="progress-wrapper">
+
+                <div class="progress-row">
+
+                    <div class="progress-label">
+                        <span>Низкий уровень</span>
+                        <span>35%</span>
+                    </div>
+
+                    <div class="small-progress">
+                        <div class="small-fill green"
+                             style="width:35%">
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="progress-row">
+
+                    <div class="progress-label">
+                        <span>Средний уровень</span>
+                        <span>40%</span>
+                    </div>
+
+                    <div class="small-progress">
+                        <div class="small-fill orange"
+                             style="width:40%">
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="progress-row">
+
+                    <div class="progress-label">
+                        <span>Высокий уровень</span>
+                        <span>25%</span>
+                    </div>
+
+                    <div class="small-progress">
+                        <div class="small-fill red"
+                             style="width:25%">
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- SCALE 2 -->
+
+        <div class="scale-card">
+
+            <div class="scale-title">
+                Стрессоустойчивость
+            </div>
+
+            <div class="progress-wrapper">
+
+                <div class="progress-row">
+
+                    <div class="progress-label">
+                        <span>Низкий уровень</span>
+                        <span>20%</span>
+                    </div>
+
+                    <div class="small-progress">
+                        <div class="small-fill green"
+                             style="width:20%">
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="progress-row">
+
+                    <div class="progress-label">
+                        <span>Средний уровень</span>
+                        <span>45%</span>
+                    </div>
+
+                    <div class="small-progress">
+                        <div class="small-fill orange"
+                             style="width:45%">
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="progress-row">
+
+                    <div class="progress-label">
+                        <span>Высокий уровень</span>
+                        <span>35%</span>
+                    </div>
+
+                    <div class="small-progress">
+                        <div class="small-fill red"
+                             style="width:35%">
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- RISK -->
+
+    <div class="card">
+
+        <h2>Студенты в зоне риска</h2>
+
+        <div class="student-list">
+
+            <div class="student-item">
+
+                <div>ivan</div>
+
+                <div class="badges">
+                    <div class="badge red">
+                        Тревожность: 84
+                    </div>
+
+                    <div class="badge orange">
+                        Стрессоустойчивость: 42
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="student-item">
+
+                <div>maria</div>
+
+                <div class="badges">
+                    <div class="badge red">
+                        Тревожность: 78
+                    </div>
+
+                    <div class="badge orange">
+                        Стрессоустойчивость: 21
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<br>
+
+<!-- ======================
+     HEATMAP TABLE
+====================== -->
+
+<div class="card big-card">
+
+    <h2>Тепловая таблица результатов студентов</h2>
+
+    <table class="heatmap-table">
+
+        <thead>
+
+            <tr>
+                <th>Студент</th>
+                <th>Тревожность</th>
+                <th>Стрессоустойчивость</th>
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            <tr>
+                <td>ivan</td>
+                <td class="high">84</td>
+                <td class="medium">42</td>
+            </tr>
+
+            <tr>
+                <td>kate</td>
+                <td class="low">18</td>
+                <td class="high">85</td>
+            </tr>
+
+            <tr>
+                <td>alex</td>
+                <td class="medium">46</td>
+                <td class="medium">55</td>
+            </tr>
+
+            <tr>
+                <td>maria</td>
+                <td class="high">78</td>
+                <td class="low">21</td>
+            </tr>
+
+            <tr>
+                <td>nikita</td>
+                <td class="low">24</td>
+                <td class="high">91</td>
+            </tr>
+
+        </tbody>
+
+    </table>
+
+    <!-- LEGEND -->
+
+    <div class="legend">
+
+        <div class="legend-item">
+            <div class="legend-color low"></div>
+            Низкий уровень — благоприятный результат
+        </div>
+
+        <div class="legend-item">
+            <div class="legend-color medium"></div>
+            Средний уровень — допустимый результат
+        </div>
+
+        <div class="legend-item">
+            <div class="legend-color high"></div>
+            Высокий уровень — зона риска
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+new Chart(document.getElementById('scatterChart'), {
+
+    type:'scatter',
+
+    data:{
+        datasets:[
+
+            {
+                label:'ivan',
+                data:[{x:84,y:42}]
+            },
+
+            {
+                label:'kate',
+                data:[{x:18,y:85}]
+            },
+
+            {
+                label:'alex',
+                data:[{x:46,y:55}]
+            },
+
+            {
+                label:'maria',
+                data:[{x:78,y:21}]
+            },
+
+            {
+                label:'nikita',
+                data:[{x:24,y:91}]
+            }
+
+        ]
+    },
+
+    options:{
+
+        maintainAspectRatio:false,
+
+        scales:{
+
+            x:{
+                title:{
+                    display:true,
+                    text:'Тревожность'
+                },
+                min:0,
+                max:100
+            },
+
+            y:{
+                title:{
+                    display:true,
+                    text:'Стрессоустойчивость'
+                },
+                min:0,
+                max:100
+            }
+
+        }
+
+    }
+
+});
+
+</script>
+
+</body>
+</html>
+```
