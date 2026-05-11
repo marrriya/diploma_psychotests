@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Dashboard результатов</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+
+body{
+    margin:0;
+    padding:40px;
+    background:#f4f6fb;
+    font-family:Arial,sans-serif;
+    color:#1e293b;
+}
+
+h1{
+    margin-bottom:10px;
+}
+
+.subtitle{
+    color:#64748b;
+    margin-bottom:30px;
+}
+
+/* GRID */
+
+.dashboard{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(420px,1fr));
+    gap:24px;
+}
+
+/* CARDS */
+
+.card{
+    background:white;
+    border-radius:24px;
+    padding:24px;
+    box-shadow:0 4px 20px rgba(0,0,0,0.06);
+}
+
+.big-card{
+    grid-column:1/-1;
+}
+
+.card h2{
+    margin-top:0;
+    margin-bottom:20px;
+    font-size:24px;
+}
+
+/* PROGRESS */
+
+.main-progress{
+    background:white;
+    border-radius:24px;
+    padding:28px;
+    margin-bottom:30px;
+    box-shadow:0 4px 20px rgba(0,0,0,0.06);
+}
+
+.progress-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:16px;
+}
+
+.progress-title{
+    font-size:24px;
+    font-weight:bold;
+}
+
+.progress-value{
+    font-size:22px;
+    font-weight:bold;
+    color:#22c55e;
+}
+
+.progress-bar{
+    width:100%;
+    height:22px;
+    background:#e2e8f0;
+    border-radius:999px;
+    overflow:hidden;
+}
+
+.progress-fill{
+    height:100%;
+    background:#22c55e;
+    border-radius:999px;
+}
+
+/* KPI */
+
+.kpi-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:20px;
+}
+
+.kpi{
+    background:white;
+    border-radius:22px;
+    padding:24px;
+    box-shadow:0 4px 20px rgba(0,0,0,0.06);
+}
+
+.kpi-label{
+    color:#64748b;
+    font-size:15px;
+}
+
+.kpi-value{
+    font-size:42px;
+    font-weight:bold;
+    margin-top:12px;
+}
+
+/* SCATTER */
+
+.scatter-wrapper{
+    height:420px;
+}
+
+/* SCALE */
+
+.scale-card{
+    background:#f8fafc;
+    border-radius:18px;
+    padding:18px;
+    margin-bottom:18px;
+}
+
+.scale-title{
+    font-size:20px;
+    font-weight:bold;
+    margin-bottom:20px;
+}
+
+.progress-row{
+    margin-bottom:12px;
+}
+
+.progress-label{
+    display:flex;
+    justify-content:space-between;
+}
+
+.small-progress{
+    width:100%;
+    height:14px;
+    background:#e2e8f0;
+    border-radius:999px;
+    overflow:hidden;
+}
+
+.small-fill{
+    height:100%;
+    border-radius:999px;
+}
+
+.green{background:#22c55e;}
+.orange{background:#f59e0b;}
+.red{background:#ef4444;}
+
+</style>
+</head>
+
+<body>
+
+<h1>Dashboard результатов группы</h1>
+
+<div class="subtitle">
+Тест: {{ test_title if test_title else "Аналитика результатов" }}
+</div>
+
+<!-- ================= PROGRESS ================= -->
+
+<div class="main-progress">
+
+    <div class="progress-top">
+
+        <div class="progress-title">
+            Прохождение теста
+        </div>
+
+        <div class="progress-value">
+            {{ completed_percent }}%
+        </div>
+
+    </div>
+
+    <div class="progress-bar">
+        <div class="progress-fill"
+             style="width: {{ completed_percent }}%">
+        </div>
+    </div>
+
+</div>
+
+<!-- ================= KPI ================= -->
+
+<div class="kpi-grid">
+
+    <div class="kpi">
+        <div class="kpi-label">Студентов</div>
+        <div class="kpi-value">{{ students_count }}</div>
+    </div>
+
+    <div class="kpi">
+        <div class="kpi-label">Прошли тест</div>
+        <div class="kpi-value">{{ completed_count }}</div>
+    </div>
+
+    <div class="kpi">
+        <div class="kpi-label">Средний показатель 1</div>
+        <div class="kpi-value">
+            {{ averages.values()|list|first if averages }}
+        </div>
+    </div>
+
+    <div class="kpi">
+        <div class="kpi-label">Средний показатель 2</div>
+        <div class="kpi-value">
+            {{ averages.values()|list|last if averages }}
+        </div>
+    </div>
+
+</div>
+
+<br>
+
+<div class="dashboard">
+
+    <!-- SCATTER -->
+
+    <div class="card">
+
+        <h2>Распределение студентов</h2>
+
+        <div class="scatter-wrapper">
+            <canvas id="scatterChart"></canvas>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+const scatterData = {{ scatter_data | tojson }};
+
+new Chart(document.getElementById('scatterChart'), {
+
+    type:'scatter',
+
+    data:{
+        datasets: scatterData.map(s => ({
+            label: s.username,
+            data: [{ x: s.x, y: s.y }]
+        }))
+    },
+
+    options:{
+
+        maintainAspectRatio:false,
+
+        scales:{
+
+            x:{
+                min:0,
+                max:100,
+                title:{ display:true, text:'Шкала X' }
+            },
+
+            y:{
+                min:0,
+                max:100,
+                title:{ display:true, text:'Шкала Y' }
+            }
+
+        }
+
+    }
+
+});
+
+</script>
+
+</body>
+</html>

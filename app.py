@@ -102,40 +102,185 @@ class VisualizationBuilder:
     # SERIES BUILDER (CORE FIX)
     # ---------------------------
 
+    # def _build_series(self, results, roles, visualization_id):
+
+    #     points = []
+
+    #     # собрать scale_id → value map
+    #     scale_map = {
+    #         r["scale_id"]: r["score"]
+    #         for r in results
+    #     }
+
+    #     # собрать роли из БД
+    #     self.cursor.execute("""
+    #         SELECT role_key, scale_id
+    #         FROM visualization_roles
+    #         WHERE visualization_id = ?
+    #     """, (visualization_id,))
+
+    #     role_rows = self.cursor.fetchall()
+
+    #     role_map = {}
+    #     for role_key, scale_id in role_rows:
+    #         role_map[role_key] = scale_map.get(scale_id)
+
+    #     # 👇 универсальная точка
+    #     point = {}
+
+    #     # for role, value in role_map.items():
+    #     #     if value is None:
+    #     #         continue
+    #     #     point[role] = value
+        
+
+    #     for role, scale_id in roles.items():
+
+    #         found = next(
+    #             (
+    #                 r for r in results
+    #                 if r["scale_id"] == scale_id
+    #             ),
+    #             None
+    #         )
+
+    #         if not found:
+    #             continue
+
+    #         point[found["name"]] = found["score"]
+
+    #     points.append(point)
+
+    #     return points
+    
+
+    # def _build_series(self, results, roles, visualization_id):
+
+    #     # scale_id → score
+    #     scale_map = {
+    #         r["scale_id"]: r["score"]
+    #         for r in results
+    #     }
+
+    #     # роли из БД
+    #     self.cursor.execute("""
+    #         SELECT role_key, scale_id
+    #         FROM visualization_roles
+    #         WHERE visualization_id = ?
+    #     """, (visualization_id,))
+
+    #     role_rows = self.cursor.fetchall()
+
+    #     # ---------------------------------
+    #     # CASE 1: SCATTER (x/y обязателен)
+    #     # ---------------------------------
+
+    #     if set([r[0] for r in role_rows]) >= {"x", "y"}:
+
+    #         x = None
+    #         y = None
+
+    #         for role_key, scale_id in role_rows:
+
+    #             value = scale_map.get(scale_id)
+
+    #             if value is None:
+    #                 continue
+
+    #             if role_key == "x":
+    #                 x = value
+
+    #             elif role_key == "y":
+    #                 y = value
+
+    #         if x is None or y is None:
+    #             return []
+
+    #         return [{
+    #             "x": x,
+    #             "y": y
+    #         }]
+
+    #     # ---------------------------------
+    #     # CASE 2: BAR / LINE / RADAR
+    #     # ---------------------------------
+
+    #     point = {}
+
+    #     for role_key, scale_id in role_rows:
+
+    #         value = scale_map.get(scale_id)
+
+    #         if value is None:
+    #             continue
+
+    #         # используем role_key как label
+    #         point[role_key] = value
+
+    #     return [point]
     def _build_series(self, results, roles, visualization_id):
 
-        points = []
-
-        # собрать scale_id → value map
         scale_map = {
             r["scale_id"]: r["score"]
             for r in results
         }
 
-        # собрать роли из БД
+        # получаем роли + НАЗВАНИЯ шкал
         self.cursor.execute("""
-            SELECT role_key, scale_id
-            FROM visualization_roles
-            WHERE visualization_id = ?
+            SELECT vr.role_key, vr.scale_id, s.name
+            FROM visualization_roles vr
+            JOIN scales s ON vr.scale_id = s.id
+            WHERE vr.visualization_id = ?
         """, (visualization_id,))
 
         role_rows = self.cursor.fetchall()
 
-        role_map = {}
-        for role_key, scale_id in role_rows:
-            role_map[role_key] = scale_map.get(scale_id)
+        # -------------------------
+        # SCATTER (x/y)
+        # -------------------------
 
-        # 👇 универсальная точка
+        role_keys = [r[0] for r in role_rows]
+
+        if "x" in role_keys and "y" in role_keys:
+
+            x = None
+            y = None
+
+            for role_key, scale_id, _ in role_rows:
+
+                value = scale_map.get(scale_id)
+
+                if role_key == "x":
+                    x = value
+
+                elif role_key == "y":
+                    y = value
+
+            if x is None or y is None:
+                return []
+
+            return [{
+                "x": x,
+                "y": y
+            }]
+
+        # -------------------------
+        # BAR / LINE / RADAR
+        # -------------------------
+
         point = {}
 
-        for role, value in role_map.items():
+        for role_key, scale_id, scale_name in role_rows:
+
+            value = scale_map.get(scale_id)
+
             if value is None:
                 continue
-            point[role] = value
 
-        points.append(point)
+            # 👇 ВАЖНО: используем НАЗВАНИЕ шкалы
+            point[scale_name] = value
 
-        return points
+        return [point]
 
     # ---------------------------
     # FORMULAS + NORMALIZATION (MIN VERSION)
@@ -1110,6 +1255,113 @@ def teacher_results():
         groups=groups
     )
 
+@app.route('/teacher/group_results/<int:test_id>')
+def group_results(test_id):
+
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+
+    # -----------------------
+    # GROUP STATS
+    # -----------------------
+
+    cursor.execute("""
+        SELECT COUNT(DISTINCT user_id)
+        FROM user_attempts
+        WHERE test_id = ?
+    """, (test_id,))
+    students_count = cursor.fetchone()[0]
+
+    cursor.execute("""
+        SELECT COUNT(*)
+        FROM user_attempts
+        WHERE test_id = ?
+    """, (test_id,))
+    completed_count = cursor.fetchone()[0]
+
+    completed_percent = round((completed_count / students_count) * 100, 1) if students_count else 0
+
+    # -----------------------
+    # SCORES PER STUDENT
+    # -----------------------
+
+    cursor.execute("""
+        SELECT 
+            u.username,
+            s.name,
+            ur.score
+        FROM user_results ur
+        JOIN user_attempts ua ON ur.attempt_id = ua.id
+        JOIN users u ON ua.user_id = u.id
+        JOIN scales s ON ur.scale_id = s.id
+        WHERE ua.test_id = ?
+    """, (test_id,))
+
+    rows = cursor.fetchall()
+
+    # -----------------------
+    # BUILD SCATTER DATA
+    # -----------------------
+
+    scatter_map = {}
+
+    for username, scale_name, score in rows:
+
+        if username not in scatter_map:
+            scatter_map[username] = {
+                "username": username,
+                "values": {}
+            }
+
+        scatter_map[username]["values"][scale_name] = score
+
+    scatter_data = []
+
+    for user in scatter_map.values():
+
+        values = user["values"]
+
+        # берем первые 2 шкалы (универсально для scatter)
+        keys = list(values.keys())
+
+        if len(keys) >= 2:
+
+            scatter_data.append({
+                "username": user["username"],
+                "x": values[keys[0]],
+                "y": values[keys[1]]
+            })
+
+    # -----------------------
+    # AVERAGES (KPI)
+    # -----------------------
+
+    cursor.execute("""
+        SELECT s.name, AVG(ur.score)
+        FROM user_results ur
+        JOIN user_attempts ua ON ur.attempt_id = ua.id
+        JOIN scales s ON ur.scale_id = s.id
+        WHERE ua.test_id = ?
+        GROUP BY s.id
+    """, (test_id,))
+
+    avg_rows = cursor.fetchall()
+
+    averages = {
+        name: round(avg, 1)
+        for name, avg in avg_rows
+    }
+
+    conn.close()
+
+    return render_template(
+        "teacher/group_results_dashboard.html",
+        students_count=students_count,
+        completed_count=completed_count,
+        completed_percent=completed_percent,
+        scatter_data=scatter_data,
+        averages=averages
+    )
 
 #групповые тесты
 @app.route('/group_tests')
@@ -1311,22 +1563,41 @@ def test_page(test_id):
     if user_id and attempt and not retake_mode:
 
         attempt_id = attempt[0]
-
         cursor.execute("""
-            SELECT s.id, s.name, ur.score, s.max_score
+            SELECT
+                s.id,
+                s.name,
+                ur.score,
+                s.max_score,
+
+                si.title,
+                si.description
+
             FROM user_results ur
-            JOIN scales s ON ur.scale_id = s.id
+
+            JOIN scales s
+                ON ur.scale_id = s.id
+
+            LEFT JOIN scale_interpretation si
+                ON si.scale_id = s.id
+                AND ur.score BETWEEN si.min_score AND si.max_score
+
             WHERE ur.attempt_id = ?
         """, (attempt_id,))
+        
 
         rows = cursor.fetchall()
+
 
         results = [
             {
                 "scale_id": r[0],
                 "name": r[1],
                 "score": r[2],
-                "max": r[3]
+                "max": r[3],
+
+                "title": r[4],
+                "desc": r[5]
             }
             for r in rows
         ]

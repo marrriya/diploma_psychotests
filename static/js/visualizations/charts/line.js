@@ -2,52 +2,47 @@ export function renderLine(canvas, config) {
 
     const ctx = canvas.getContext('2d');
 
-    if (!config || !config.series) {
-        console.error("Line chart: нет данных");
-        return;
-    }
+    const point = config.points[0];
 
-    // превращаем series → labels + values
-    const labels = config.series.map((item, i) =>
-        item.label ?? `Point ${i + 1}`
-    );
-
-    const values = config.series.map(item =>
-        item.value ?? 0
-    );
+    const labels = Object.keys(point);
+    const values = Object.values(point);
 
     new Chart(ctx, {
+
         type: 'line',
+
         data: {
+
             labels: labels,
+
             datasets: [{
-                label: config.title || 'Line chart',
+
+                label: config.title,
+
                 data: values,
 
-                fill: false,
-                tension: 0.3,
-                pointRadius: 4
+                backgroundColor:
+                    config.settings.backgroundColor ||
+                    'rgba(75,192,192,0.2)',
+
+                borderColor:
+                    config.settings.borderColor ||
+                    'rgba(75,192,192,1)',
+
+                fill:
+                    config.settings.fill === 'true'
             }]
         },
+
         options: {
             responsive: true,
-            maintainAspectRatio: false,
-
-            plugins: {
-                legend: {
-                    display: true
-                }
-            },
-
             scales: {
-                x: {
-                    display: true
-                },
                 y: {
-                    display: true,
                     beginAtZero: true
                 }
             }
         }
+
     });
+
 }
