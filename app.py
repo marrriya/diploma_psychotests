@@ -11,6 +11,160 @@ app = Flask(__name__)
 app.secret_key = 'supersecretkey'  # для сессий
 
 
+class VisualizationBuilder:
+
+    def __init__(self, conn):
+        self.conn = conn
+        self.cursor = conn.cursor()
+
+    # ---------------------------
+    # MAIN ENTRY
+    # ---------------------------
+
+    def build(self, test_id, results, visualization_type="individual"):
+
+        viz = self._get_visualization(test_id, visualization_type)
+
+        roles = self._get_roles(viz["id"])
+        settings = self._get_settings(viz["id"])
+
+        series = self._build_series(results, roles, viz["id"])  # 👈 FIX
+        # scales = self._get_scales(test_id)
+        scale_ranges = self._get_scale_ranges_by_role(viz["id"])
+
+        return {
+            "type": viz["chart_type"],
+            "title": viz["title"],
+            "points": series,
+            "settings": settings,
+            "scaleRanges": scale_ranges   # ✅ теперь правильно
+        }
+        
+    # ---------------------------
+    # VISUALIZATION META
+    # ---------------------------
+
+    def _get_visualization(self, test_id, vtype):
+        self.cursor.execute("""
+            SELECT id, chart_type, title
+            FROM visualizations
+            WHERE test_id = ?
+            AND type = ?
+        """, (test_id, vtype))
+
+        row = self.cursor.fetchone()
+
+        if not row:
+            raise Exception("Visualization not found")
+
+        return {
+            "id": row[0],
+            "chart_type": row[1],
+            "title": row[2]
+        }
+
+    # ---------------------------
+    # ROLES
+    # ---------------------------
+
+    def _get_roles(self, visualization_id):
+
+        self.cursor.execute("""
+            SELECT role_key, scale_id
+            FROM visualization_roles
+            WHERE visualization_id = ?
+        """, (visualization_id,))
+
+        rows = self.cursor.fetchall()
+
+        return {
+            role_key: scale_id
+            for role_key, scale_id in rows
+        }
+
+    # ---------------------------
+    # SETTINGS
+    # ---------------------------
+
+    def _get_settings(self, visualization_id):
+
+        self.cursor.execute("""
+            SELECT key, value
+            FROM visualization_settings
+            WHERE visualization_id = ?
+        """, (visualization_id,))
+
+        return {
+            k: v for k, v in self.cursor.fetchall()
+        }
+
+    # ---------------------------
+    # SERIES BUILDER (CORE FIX)
+    # ---------------------------
+
+    def _build_series(self, results, roles, visualization_id):
+
+        points = []
+
+        # собрать scale_id → value map
+        scale_map = {
+            r["scale_id"]: r["score"]
+            for r in results
+        }
+
+        # собрать роли из БД
+        self.cursor.execute("""
+            SELECT role_key, scale_id
+            FROM visualization_roles
+            WHERE visualization_id = ?
+        """, (visualization_id,))
+
+        role_rows = self.cursor.fetchall()
+
+        role_map = {}
+        for role_key, scale_id in role_rows:
+            role_map[role_key] = scale_map.get(scale_id)
+
+        # 👇 универсальная точка
+        point = {}
+
+        for role, value in role_map.items():
+            if value is None:
+                continue
+            point[role] = value
+
+        points.append(point)
+
+        return points
+
+    # ---------------------------
+    # FORMULAS + NORMALIZATION (MIN VERSION)
+    # ---------------------------
+
+    def _apply_transformations(self, value):
+
+        # TODO: сюда потом подключишь visualization_formulas
+
+        # временно нормализация 0-100 → 0-1
+        return round(value / 100, 3)
+    
+    def _get_scale_ranges_by_role(self, visualization_id):
+
+        self.cursor.execute("""
+            SELECT vr.role_key, s.max_score
+            FROM visualization_roles vr
+            JOIN scales s ON vr.scale_id = s.id
+            WHERE vr.visualization_id = ?
+        """, (visualization_id,))
+
+        rows = self.cursor.fetchall()
+
+        return {
+            role_key: max_score
+            for role_key, max_score in rows
+        }
+        
+
 ###. АДМИНКА. ###
     # def is_admin():
     #     print("CHECK ADMIN:", session)
@@ -319,40 +473,6 @@ def create_test_page():
         return redirect('/')
     return render_template('teacher/create_test.html')
 
-# @app.route('/teacher/create_test', methods=['POST'])
-# def create_test():
-#     data = request.json
-
-#     db = get_db()
-
-#     cursor = db.cursor()
-
-#     cursor.execute("""
-#         INSERT INTO tests (title, description)
-#         VALUES (?, ?)
-#     """, (data['title'], data['description']))
-
-#     test_id = cursor.lastrowid
-
-#     scale_ids = []
-
-#     for s in data['scales']:
-#         cursor.execute("""
-#             INSERT INTO scales (name, test_id)
-#             VALUES (?, ?)
-#         """, (s, test_id))
-
-#         scale_ids.append(cursor.lastrowid)
-
-#     for q in data['questions']:
-#         cursor.execute("""
-#             INSERT INTO questions (test_id, question, scale_id, q_type)
-#             VALUES (?, ?, ?, 'single')
-#         """, (test_id, q['text'], scale_ids[int(q['scale'])]))
-
-#     db.commit()
-
-#     return {"success": True}
 
 @app.route('/teacher/create_test_full', methods=['POST'])
 def create_test_full():
@@ -449,50 +569,7 @@ def create_test_full():
         print("ERROR:", e)
         return {"success": False, "error": str(e)}
 
-# @app.route('/teacher/groups')
-# def teacher_groups():
-#     conn = sqlite3.connect('database.db')
-#     conn.row_factory = sqlite3.Row
-#     cursor = conn.cursor()
 
-#     teacher_id = session.get('user_id')
-
-#     # cursor.execute("""
-#     #     SELECT 
-#     #         g.id, 
-#     #         g.name, 
-#     #         COUNT(gs.user_id) AS students_count
-#     #     FROM groups g
-#     #     LEFT JOIN group_students gs ON g.id = gs.group_id
-#     #     WHERE g.teacher_id = ?
-#     #     GROUP BY g.id
-#     # """, (teacher_id,))
-#     cursor.execute("""
-#         SELECT 
-#             g.id, 
-#             g.name,
-#             g.invite_code,
-#             COUNT(gs.user_id) AS students_count
-
-#         FROM groups g
-
-#         LEFT JOIN group_students gs
-#             ON g.id = gs.group_id
-
-#         WHERE g.teacher_id = ?
-
-#         GROUP BY g.id
-#     """, (teacher_id,))
-
-#     groups = cursor.fetchall()
-
-#     conn.close()
-
-#     return render_template(
-#         'teacher/groups.html',
-#         username=session.get('username'),
-#         groups=groups
-#     )
 @app.route('/teacher/groups')
 def teacher_groups():
 
@@ -1195,8 +1272,7 @@ def join_group():
 
 @app.route('/test/<int:test_id>')
 def test_page(test_id):
-    # if 'username' not in session:
-    #     return redirect('/')
+
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
 
@@ -1210,20 +1286,16 @@ def test_page(test_id):
         if user:
             user_id = user[0]
 
-
-
-    # инфа о тесте
+    # test info
     cursor.execute("""
-        SELECT title, description, instruction, visualization_type
+        SELECT title, description, instruction
         FROM tests
         WHERE id = ?
     """, (test_id,))
-    test_data = cursor.fetchone()
 
-    # title, description, visualization_type = test_data
-    title, description, instruction, visualization_type = test_data
+    title, description, instruction = cursor.fetchone()
 
-    # проверяем последнюю попытку
+    # attempt
     cursor.execute("""
         SELECT id FROM user_attempts
         WHERE user_id = ? AND test_id = ?
@@ -1232,46 +1304,52 @@ def test_page(test_id):
 
     attempt = cursor.fetchone()
 
-    # ЕСЛИ УЖЕ ПРОХОДИЛ → ПОКАЗЫВАЕМ РЕЗУЛЬТАТ
+    # -------------------------
+    # IF COMPLETED → RESULT
+    # -------------------------
+
     if user_id and attempt and not retake_mode:
+
         attempt_id = attempt[0]
 
-     
         cursor.execute("""
-            SELECT s.name, ur.score, s.max_score, si.title, si.description
+            SELECT s.id, s.name, ur.score, s.max_score
             FROM user_results ur
             JOIN scales s ON ur.scale_id = s.id
-            LEFT JOIN scale_interpretation si
-                ON si.scale_id = s.id
-                AND ur.score BETWEEN si.min_score AND si.max_score
             WHERE ur.attempt_id = ?
         """, (attempt_id,))
 
         rows = cursor.fetchall()
 
-        results = []
-        for name, score, max_score, title, desc in rows:
-            results.append({
-                'name': name,
-                'score': score,
-                'max': max_score,
-                'title': title or "",
-                'desc': desc or ""
-            })
+        results = [
+            {
+                "scale_id": r[0],
+                "name": r[1],
+                "score": r[2],
+                "max": r[3]
+            }
+            for r in rows
+        ]
+
+        # -------------------------
+        # VISUALIZATION ENGINE (NEW)
+        # -------------------------
+
+        builder = VisualizationBuilder(conn)
+        chart_config = builder.build(test_id, results)
 
         conn.close()
 
         return render_template(
-            'result.html',
+            "result.html",
             results=results,
-            chart_labels=json.dumps([r['name'] for r in results]),
-            chart_values=json.dumps([r['score'] for r in results]),
-            chart_type=visualization_type,
+            chart_config=chart_config,
             test_id=test_id
         )
 
-
-    # ЕСЛИ НЕ ПРОХОДИЛ → ПОКАЗЫВАЕМ ТЕСТ
+    # -------------------------
+    # TEST PAGE
+    # -------------------------
 
     cursor.execute("""
         SELECT id, question, q_type, order_num
@@ -1279,45 +1357,13 @@ def test_page(test_id):
         WHERE test_id = ?
         ORDER BY order_num
     """, (test_id,))
-    
-    question_rows = cursor.fetchall()
 
-    questions = []
-
-    for q_id, question_text, q_type, order_num in question_rows:
-
-        try:
-            parsed_text = json.loads(question_text)
-        except:
-            parsed_text = [question_text]
-
-        cursor.execute("""
-            SELECT id, answer_text, score
-            FROM answer_options
-            WHERE question_id = ?
-        """, (q_id,))
-        
-        options = cursor.fetchall()
-
-        questions.append({
-            'id': q_id,
-            'text': parsed_text,
-            'type': q_type,
-            'order': order_num,
-            'options': options
-        })
+    questions = cursor.fetchall()
 
     conn.close()
 
-    # return render_template(
-    #     'test.html',
-    #     questions=questions,
-    #     test_id=test_id,
-    #     title=title,
-    #     description=description
-    # )
     return render_template(
-        'test.html',
+        "test.html",
         questions=questions,
         test_id=test_id,
         title=title,
@@ -1325,15 +1371,18 @@ def test_page(test_id):
         instruction=instruction
     )
 
+
 @app.route('/cancel_test')
 def cancel_test():
     return redirect('/')
 
+
 @app.route('/submit_test', methods=['POST'])
 def submit_test():
-    
+
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
+
     username = session.get('username')
     user_id = None
 
@@ -1343,19 +1392,20 @@ def submit_test():
         if user:
             user_id = user[0]
 
-    conn = sqlite3.connect('database.db')
-    cursor = conn.cursor()
+    question_ids = [
+        key.split('_')[1]
+        for key in request.form
+        if key.startswith('q_')
+    ]
 
+    if not question_ids:
+        return "Нет ответов"
 
-    question_ids = [key.split('_')[1] for key in request.form if key.startswith('q_')]
-
-    cursor.execute("""
-        SELECT test_id FROM questions WHERE id = ?
-    """, (question_ids[0],))
+    cursor.execute("SELECT test_id FROM questions WHERE id = ?", (question_ids[0],))
     test_id = cursor.fetchone()[0]
 
+    # attempt
     attempt_id = None
-
     if user_id:
         cursor.execute("""
             INSERT INTO user_attempts (user_id, test_id)
@@ -1364,102 +1414,23 @@ def submit_test():
 
         attempt_id = cursor.lastrowid
 
-    # сохранение ответов
+    # save answers
     for key in request.form:
         if key.startswith('q_'):
-            question_id = int(key.split('_')[1])
-            answer_id = int(request.form[key])
+            q_id = int(key.split('_')[1])
+            ans_id = int(request.form[key])
 
             if attempt_id:
                 cursor.execute("""
                     INSERT INTO user_answers (attempt_id, question_id, ans_opt_id)
                     VALUES (?, ?, ?)
-                """, (attempt_id, question_id, answer_id))
+                """, (attempt_id, q_id, ans_id))
 
-    cursor.execute("""
-        SELECT id, name, max_score 
-        FROM scales 
-        WHERE test_id = ?
-    """, (test_id,))
-
-    scales = cursor.fetchall()
-
-    results = []
-
-
-    for scale_id, scale_name, max_score in scales:
-
-        score = 0
-
-        for key in request.form:
-            if key.startswith('q_'):
-                question_id = int(key.split('_')[1])
-                answer_id = int(request.form[key])
-
-                # получаем балл ответа + шкалу вопроса
-                cursor.execute("""
-                    SELECT ao.score, q.scale_id
-                    FROM answer_options ao
-                    JOIN questions q ON ao.question_id = q.id
-                    WHERE ao.id = ?
-                """, (answer_id,))
-
-                row = cursor.fetchone()
-
-                if row:
-                    answer_score, question_scale_id = row
-
-                    # добавляем только если это нужная шкала
-                    if question_scale_id == scale_id:
-                        score += answer_score
-
-        if score is None:
-            score = 0
-
-        # интерпретация
-        cursor.execute("""
-            SELECT title, description
-            FROM scale_interpretation
-            WHERE scale_id = ? AND ? BETWEEN min_score AND max_score
-        """, (scale_id, score))
-
-        interpretation = cursor.fetchone()
-
-        title = interpretation[0] if interpretation else ""
-        description = interpretation[1] if interpretation else ""
-
-        # сохранение результатов
-        if user_id:
-            cursor.execute("""
-                INSERT INTO user_results (attempt_id, scale_id, score, user_id)
-                VALUES (?, ?, ?, ?)
-            """, (attempt_id, scale_id, score, user_id))
-
-        results.append({
-            'name': scale_name,
-            'score': score,
-            'max': max_score,
-            'title': title,
-            'desc': description
-        })
-    # получаем тип визуализации
-    cursor.execute("SELECT visualization_type FROM tests WHERE id = ?", (test_id,))
-    visualization_type = cursor.fetchone()[0]
-    # conn.commit()
-    if user_id:
-        conn.commit()   
+    conn.commit()
     conn.close()
-    labels = [r['name'] for r in results]
-    values = [r['score'] for r in results]  
 
-    # return render_template('result.html', results=results)
-    return render_template(
-    'result.html',
-    results=results,
-    chart_labels=json.dumps(labels),
-    chart_values=json.dumps(values),
-    chart_type=visualization_type
-    )
+    return redirect(f"/test/{test_id}")
+
 
 @app.route('/retake/<int:test_id>')
 def retake(test_id):
@@ -1486,20 +1457,34 @@ def retake(test_id):
 
 @app.route('/completed')
 def completed_tests_page():
+
     if 'username' not in session:
         return redirect('/')
 
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
 
-    cursor.execute("SELECT id FROM users WHERE username = ?", (session['username'],))
-    user_id = cursor.fetchone()[0]
+    cursor.execute(
+        "SELECT id FROM users WHERE username = ?",
+        (session['username'],)
+    )
 
-    # последние попытки по каждому тесту
+    user = cursor.fetchone()
+
+    if not user:
+        conn.close()
+        return redirect('/')
+
+    user_id = user[0]
+
     cursor.execute("""
-        SELECT t.id, t.title, MAX(ua.id)
+        SELECT
+            t.id,
+            t.title,
+            MAX(ua.id)
         FROM user_attempts ua
-        JOIN tests t ON ua.test_id = t.id
+        JOIN tests t
+            ON ua.test_id = t.id
         WHERE ua.user_id = ?
         GROUP BY t.id
     """, (user_id,))
@@ -1508,8 +1493,11 @@ def completed_tests_page():
 
     conn.close()
 
-    # return render_template('completed.html', tests=tests)
-    return render_template('completed.html', username=session.get('username'), tests=tests)
+    return render_template(
+        'completed.html',
+        username=session.get('username'),
+        tests=tests
+    )
 
 @app.route('/portrait')
 def portrait():
@@ -1560,33 +1548,9 @@ def portrait():
 
     return render_template("portrait.html", charts=charts)
 
-
-
-# def is_admin():
-#     return True
-
-# @app.route('/admin')
-# # @login_required
-# def admin_panel():
-#     if current_user.role != 'admin' and current_user.role != 'superadmin':
-#         abort(403)
-
-#     users = db.execute("SELECT * FROM users").fetchall()
-#     tests = db.execute("SELECT * FROM tests").fetchall()
-
-#     results = db.execute("""
-#         SELECT u.username, t.title as test_title, s.name as scale_name, ur.score
-#         FROM user_results ur
-#         JOIN users u ON ur.user_id = u.id
-#         JOIN scales s ON ur.scale_id = s.id
-#         JOIN tests t ON s.test_id = t.id
-#     """).fetchall()
-
-#     return render_template('admin.html', users=users, tests=tests, results=results)
-
-
-
 if __name__ == '__main__':
     init_db()
     app.run(debug=True)
     # app.run(debug=True, port=5050)
+
+

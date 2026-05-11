@@ -56,59 +56,14 @@
 </div>
 
 
-
-
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-    const labels = {{ chart_labels | safe }};
-    const data = {{ chart_values | safe }};
-    const type = "{{ chart_type }}";
-
-    let chartConfig = {
-        type: type,
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Результаты',
-                data: data,
-            }]
-        },
-        options: {}
-    };
-
-    // горизонтальный бар
-    if (type === 'horizontal_bar') {
-        chartConfig.type = 'bar';
-        chartConfig.options.indexAxis = 'y';
-    }
-
-    // радар
-    if (type === 'radar') {
-        chartConfig.type = 'radar';
-    }
-
-    // линейный
-    if (type === 'line') {
-        chartConfig.type = 'line';
-    }
-
-    // кастом (пример: scatter как у Айзенка)
-    if (type === 'custom') {
-        chartConfig.type = 'scatter';
-        chartConfig.data = {
-            datasets: [{
-                label: 'Пользователь',
-                data: [{
-                    x: data[0],
-                    y: data[1]
-                }]
-            }]
-        };
-    }
-
-
-    new Chart(document.getElementById('chart'), chartConfig);
+    const chartConfig = {{ chart_config | tojson | safe }};
 </script>
-
-</body>
-</html>
+<script>
+    if (!chartConfig) {
+        console.error("chartConfig пустой");
+    }
+</script>
+<script type="module" src="{{ url_for('static', filename='js/visualizations/index.js') }}"></script>
