@@ -6,6 +6,7 @@ import json
 from werkzeug.security import generate_password_hash, check_password_hash
 import random
 import string
+from collections import defaultdict
 
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'  # для сессий
@@ -25,19 +26,23 @@ class VisualizationBuilder:
 
         viz = self._get_visualization(test_id, visualization_type)
 
+
         roles = self._get_roles(viz["id"])
         settings = self._get_settings(viz["id"])
 
+        series = self._build_series(results, roles, viz["id"])
 
         scale_ranges = self._get_scale_ranges_by_role(viz["id"])
 
+  
         return {
-            "type": viz["chart_type"],
-            "title": viz["title"],
-            "points": series,
-            "settings": settings,
-            "scaleRanges": scale_ranges   # ✅ теперь правильно
+            "type": str(viz["chart_type"]),
+            "title": str(viz["title"]),
+            "points": series if series else [],
+            "settings": settings if settings else {},
+            "scaleRanges": scale_ranges if scale_ranges else {}
         }
+    
         
     # ---------------------------
     # VISUALIZATION META
@@ -101,130 +106,41 @@ class VisualizationBuilder:
     # SERIES BUILDER (CORE FIX)
     # ---------------------------
 
-    # def _build_series(self, results, roles, visualization_id):
+ 
 
-    #     points = []
+    def _build_series(self, results, roles, visualization_id, mode="default"):
 
-    #     # собрать scale_id → value map
-    #     scale_map = {
-    #         r["scale_id"]: r["score"]
-    #         for r in results
-    #     }
+        # -------------------------
+        # ГРУППИРУЕМ ПО ПОЛЬЗОВАТЕЛЯМ
+        # -------------------------
 
-    #     # собрать роли из БД
-    #     self.cursor.execute("""
-    #         SELECT role_key, scale_id
-    #         FROM visualization_roles
-    #         WHERE visualization_id = ?
-    #     """, (visualization_id,))
+        users = {}
 
-    #     role_rows = self.cursor.fetchall()
+        for r in results:
 
-    #     role_map = {}
-    #     for role_key, scale_id in role_rows:
-    #         role_map[role_key] = scale_map.get(scale_id)
+            # -------------------------
+            # GROUP MODE
+            # -------------------------
 
-    #     # 👇 универсальная точка
-    #     point = {}
+            if "username" in r:
+                username = r["username"]
 
-    #     # for role, value in role_map.items():
-    #     #     if value is None:
-    #     #         continue
-    #     #     point[role] = value
-        
+            # -------------------------
+            # INDIVIDUAL MODE
+            # -------------------------
 
-    #     for role, scale_id in roles.items():
+            else:
+                username = "current_user"
 
-    #         found = next(
-    #             (
-    #                 r for r in results
-    #                 if r["scale_id"] == scale_id
-    #             ),
-    #             None
-    #         )
+            if username not in users:
+                users[username] = {}
 
-    #         if not found:
-    #             continue
+            users[username][r["scale_id"]] = r["score"]
 
-    #         point[found["name"]] = found["score"]
+        # -------------------------
+        # РОЛИ + НАЗВАНИЯ ШКАЛ
+        # -------------------------
 
-    #     points.append(point)
-
-    #     return points
-    
-
-    # def _build_series(self, results, roles, visualization_id):
-
-    #     # scale_id → score
-    #     scale_map = {
-    #         r["scale_id"]: r["score"]
-    #         for r in results
-    #     }
-
-    #     # роли из БД
-    #     self.cursor.execute("""
-    #         SELECT role_key, scale_id
-    #         FROM visualization_roles
-    #         WHERE visualization_id = ?
-    #     """, (visualization_id,))
-
-    #     role_rows = self.cursor.fetchall()
-
-    #     # ---------------------------------
-    #     # CASE 1: SCATTER (x/y обязателен)
-    #     # ---------------------------------
-
-    #     if set([r[0] for r in role_rows]) >= {"x", "y"}:
-
-    #         x = None
-    #         y = None
-
-    #         for role_key, scale_id in role_rows:
-
-    #             value = scale_map.get(scale_id)
-
-    #             if value is None:
-    #                 continue
-
-    #             if role_key == "x":
-    #                 x = value
-
-    #             elif role_key == "y":
-    #                 y = value
-
-    #         if x is None or y is None:
-    #             return []
-
-    #         return [{
-    #             "x": x,
-    #             "y": y
-    #         }]
-
-    #     # ---------------------------------
-    #     # CASE 2: BAR / LINE / RADAR
-    #     # ---------------------------------
-
-    #     point = {}
-
-    #     for role_key, scale_id in role_rows:
-
-    #         value = scale_map.get(scale_id)
-
-    #         if value is None:
-    #             continue
-
-    #         # используем role_key как label
-    #         point[role_key] = value
-
-    #     return [point]
-    def _build_series(self, results, roles, visualization_id):
-
-        scale_map = {
-            r["scale_id"]: r["score"]
-            for r in results
-        }
-
-        # получаем роли + НАЗВАНИЯ шкал
         self.cursor.execute("""
             SELECT vr.role_key, vr.scale_id, s.name
             FROM visualization_roles vr
@@ -234,56 +150,93 @@ class VisualizationBuilder:
 
         role_rows = self.cursor.fetchall()
 
-        # -------------------------
-        # SCATTER (x/y)
-        # -------------------------
-
         role_keys = [r[0] for r in role_rows]
+
+        series = []
+
+        # ==================================================
+        # SCATTER
+        # ==================================================
 
         if "x" in role_keys and "y" in role_keys:
 
-            x = None
-            y = None
+            for username, scale_map in users.items():
 
-            for role_key, scale_id, _ in role_rows:
+                x = None
+                y = None
+
+                for role_key, scale_id, _ in role_rows:
+
+                    value = scale_map.get(scale_id)
+
+                    if role_key == "x":
+                        x = value
+
+                    elif role_key == "y":
+                        y = value
+
+                if x is None or y is None:
+                    continue
+
+                series.append({
+                    "username": username,
+                    "x": x,
+                    "y": y
+                })
+
+            return series
+
+        # ==================================================
+        # BAR / RADAR / LINE
+        # ==================================================
+
+        for username, scale_map in users.items():
+
+            # point = {
+            #     "username": username
+            # }
+            point = {}
+
+            for role_key, scale_id, scale_name in role_rows:
 
                 value = scale_map.get(scale_id)
 
-                if role_key == "x":
-                    x = value
+                if value is None:
+                    continue
 
-                elif role_key == "y":
-                    y = value
+                point[scale_name] = value
 
-            if x is None or y is None:
-                return []
+            series.append({
+                "username": username,
+                "values": point
+            })
 
-            return [{
-                "x": x,
-                "y": y
-            }]
+        # if mode == "radar_multi":
 
-        # -------------------------
-        # BAR / LINE / RADAR
-        # -------------------------
+        #     user_map = {}
 
-        point = {}
+        #     for r in results:
 
-        for role_key, scale_id, scale_name in role_rows:
+        #         username = r["username"]
+        #         scale_id = r["scale_id"]
+        #         score = r["score"]
 
-            value = scale_map.get(scale_id)
+        #         if username not in user_map:
+        #             user_map[username] = {"username": username}
 
-            if value is None:
-                continue
+        #         scale_name = self._get_scale_name(scale_id)
 
-            # 👇 ВАЖНО: используем НАЗВАНИЕ шкалы
-            point[scale_name] = value
+        #         if "values" not in user_map[username]:
+        #             user_map[username]["values"] = {}
 
-        return [point]
+        #         user_map[username]["values"][scale_name] = score
+        #         # user_map[username][scale_name] = score
 
-    # ---------------------------
-    # FORMULAS + NORMALIZATION (MIN VERSION)
-    # ---------------------------
+        #     return list(user_map.values())
+
+        return series
+
+        
 
     def _apply_transformations(self, value):
 
@@ -307,7 +260,66 @@ class VisualizationBuilder:
             role_key: max_score
             for role_key, max_score in rows
         }
-        
+    def _get_scale_name(self, scale_id):
+
+        self.cursor.execute("""
+            SELECT name
+            FROM scales
+            WHERE id = ?
+        """, (scale_id,))
+
+        row = self.cursor.fetchone()
+
+        if not row:
+            return f"Scale {scale_id}"
+
+        return row[0]
+    def _get_visualizations(self, test_id, vtype):
+
+        self.cursor.execute("""
+            SELECT id, chart_type, title
+            FROM visualizations
+            WHERE test_id = ?
+            AND type = ?
+        """, (test_id, vtype))
+
+        rows = self.cursor.fetchall()
+
+        return [
+            {
+                "id": row[0],
+                "chart_type": row[1],
+                "title": row[2]
+            }
+            for row in rows
+        ]
+    def build_group(self, test_id, results):
+
+        visualizations = self._get_visualizations(test_id, "group")
+
+        charts = []
+
+        for viz in visualizations:
+
+            roles = self._get_roles(viz["id"])
+            settings = self._get_settings(viz["id"])
+
+            # series = self._build_series(results, roles, viz["id"])
+            series = self._build_series(results, roles, viz["id"], viz["chart_type"])
+
+            scale_ranges = self._get_scale_ranges_by_role(viz["id"])
+
+            charts.append({
+                "type": str(viz["chart_type"]),
+                "title": str(viz["title"]),
+                "points": series if series else [],
+                "settings": settings if settings else {},
+                "scaleRanges": scale_ranges if scale_ranges else {}
+            })
+
+        return charts   
+
+                
 
 ###. АДМИНКА. ###
     # def is_admin():
@@ -1174,6 +1186,33 @@ def teacher_results():
             # РЕЗУЛЬТАТЫ СТУДЕНТОВ
             # -----------------------------
 
+            # cursor.execute("""
+            #     SELECT
+            #         u.username,
+            #         ua.attempt_date,
+            #         SUM(ur.score) as score
+
+            #     FROM user_attempts ua
+
+            #     JOIN users u
+            #         ON ua.user_id = u.id
+
+            #     JOIN user_results ur
+            #         ON ua.id = ur.attempt_id
+
+            #     WHERE ua.test_id = ?
+            #     AND ua.user_id IN (
+
+            #         SELECT user_id
+            #         FROM group_students
+            #         WHERE group_id = ?
+
+            #     )
+
+            #     GROUP BY ua.id
+
+            #     ORDER BY ua.attempt_date DESC
+            # """, (test_id, group_id))
             cursor.execute("""
                 SELECT
                     u.username,
@@ -1188,7 +1227,15 @@ def teacher_results():
                 JOIN user_results ur
                     ON ua.id = ur.attempt_id
 
-                WHERE ua.test_id = ?
+                WHERE ua.id IN (
+
+                    SELECT MAX(id)
+                    FROM user_attempts
+                    WHERE test_id = ?
+                    GROUP BY user_id
+
+                )
+
                 AND ua.user_id IN (
 
                     SELECT user_id
@@ -1254,49 +1301,199 @@ def teacher_results():
         groups=groups
     )
 
-@app.route('/teacher/group_results/<int:test_id>')
-def group_results(test_id):
 
+
+@app.route('/teacher/group_results/<int:group_id>/<int:test_id>')
+def group_results(group_id, test_id):
+    def get_color(index, total):
+        if total <= 1:
+            return "#22c55e"
+
+        ratio = index / (total - 1)
+
+        # зелёный → жёлтый → красный
+        r = int(255 * ratio)
+        g = int(200 * (1 - ratio))
+        b = 80
+
+        return f"rgb({r},{g},{b})"
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
 
     # -----------------------
     # GROUP STATS
     # -----------------------
-
-    cursor.execute("""
-        SELECT COUNT(DISTINCT user_id)
-        FROM user_attempts
-        WHERE test_id = ?
-    """, (test_id,))
-    students_count = cursor.fetchone()[0]
-
     cursor.execute("""
         SELECT COUNT(*)
-        FROM user_attempts
-        WHERE test_id = ?
-    """, (test_id,))
+        FROM group_students
+        WHERE group_id = ?
+    """, (group_id,))
+    students_count = cursor.fetchone()[0]
+
+    # cursor.execute("""
+      
+    #     SELECT COUNT(DISTINCT user_id)
+    #     FROM user_attempts
+    #     WHERE test_id = ?
+    # """, (test_id,))
+    cursor.execute("""
+        SELECT COUNT(DISTINCT ua.user_id)
+
+        FROM user_attempts ua
+
+        WHERE ua.test_id = ?
+
+        AND ua.user_id IN (
+            SELECT user_id
+            FROM group_students
+            WHERE group_id = ?
+        )
+    """, (test_id, group_id))
+
     completed_count = cursor.fetchone()[0]
+    
 
     completed_percent = round((completed_count / students_count) * 100, 1) if students_count else 0
 
     # -----------------------
     # SCORES PER STUDENT
     # -----------------------
-
+    
     cursor.execute("""
         SELECT 
             u.username,
             s.name,
             ur.score
+
         FROM user_results ur
-        JOIN user_attempts ua ON ur.attempt_id = ua.id
-        JOIN users u ON ua.user_id = u.id
-        JOIN scales s ON ur.scale_id = s.id
-        WHERE ua.test_id = ?
-    """, (test_id,))
+
+        JOIN user_attempts ua
+            ON ur.attempt_id = ua.id
+
+        JOIN users u
+            ON ua.user_id = u.id
+
+        JOIN scales s
+            ON ur.scale_id = s.id
+
+        WHERE ua.id IN (
+
+            SELECT MAX(id)
+
+            FROM user_attempts
+
+            WHERE test_id = ?
+
+            AND user_id IN (
+
+                SELECT user_id
+                FROM group_students
+                WHERE group_id = ?
+
+            )
+
+            GROUP BY user_id
+
+        )
+    """, (test_id, group_id))
 
     rows = cursor.fetchall()
+
+    # -----------------------
+    # SCALE INTERPRETATIONS
+    # -----------------------
+
+    cursor.execute("""
+        SELECT
+            s.name,
+            si.min_score,
+            si.max_score,
+            si.title
+
+        FROM scale_interpretation si
+
+        JOIN scales s
+            ON si.scale_id = s.id
+
+        ORDER BY s.id, si.min_score
+    """)
+
+    interpretation_rows = cursor.fetchall()
+    scale_interpretations = {}
+
+    for scale_name, min_score, max_score, title in interpretation_rows:
+
+        if scale_name not in scale_interpretations:
+            scale_interpretations[scale_name] = []
+
+        scale_interpretations[scale_name].append({
+            "min": min_score,
+            "max": max_score,
+            "title": title
+        })
+
+
+    # -----------------------
+    # HEATMAP DATA
+    # -----------------------
+
+    heatmap_map = {}
+    scale_names = set()
+
+    for username, scale_name, score in rows:
+
+        scale_names.add(scale_name)
+
+        if username not in heatmap_map:
+            heatmap_map[username] = {}
+
+        heatmap_map[username][scale_name] = score
+
+    heatmap_rows = []
+
+    for username, values in heatmap_map.items():
+
+
+        formatted_values = {}
+
+        for scale_name, score in values.items():
+
+            level_index = 0
+            level_title = ""
+
+            interpretations = scale_interpretations.get(scale_name, [])
+
+            for idx, interp in enumerate(interpretations):
+
+                if interp["min"] <= score <= interp["max"]:
+                    level_index = idx
+                    level_title = interp["title"]
+                    break
+
+            total_levels = len(interpretations)
+
+            # -----------------------
+            # AUTO COLOR
+            # -----------------------
+
+            total_levels = len(interpretations)
+
+            color = get_color(level_index, total_levels)
+
+            formatted_values[scale_name] = {
+                "score": score,
+                "title": level_title,
+                "color": color,
+                "level_index": level_index + 1,
+                "total_levels": total_levels
+            }
+
+        heatmap_rows.append({
+            "username": username,
+            "values": formatted_values
+        })
+
+    scale_names = sorted(list(scale_names))
 
     # -----------------------
     # BUILD SCATTER DATA
@@ -1335,14 +1532,44 @@ def group_results(test_id):
     # AVERAGES (KPI)
     # -----------------------
 
+
     cursor.execute("""
-        SELECT s.name, AVG(ur.score)
+        SELECT
+            s.name,
+            AVG(ur.score)
+
         FROM user_results ur
-        JOIN user_attempts ua ON ur.attempt_id = ua.id
-        JOIN scales s ON ur.scale_id = s.id
-        WHERE ua.test_id = ?
+
+        JOIN user_attempts ua
+            ON ur.attempt_id = ua.id
+
+        JOIN users u
+            ON ua.user_id = u.id
+
+        JOIN scales s
+            ON ur.scale_id = s.id
+
+        WHERE ua.id IN (
+            SELECT ua2.id
+            FROM user_attempts ua2
+            JOIN (
+                SELECT user_id, MAX(id) as max_id
+                FROM user_attempts
+                WHERE test_id = ?
+                GROUP BY user_id
+            ) last
+            ON ua2.user_id = last.user_id
+            AND ua2.id = last.max_id
+        )
+
+        AND ua.user_id IN (
+            SELECT user_id
+            FROM group_students
+            WHERE group_id = ?
+        )
+
         GROUP BY s.id
-    """, (test_id,))
+    """, (test_id, group_id))
 
     avg_rows = cursor.fetchall()
 
@@ -1351,16 +1578,95 @@ def group_results(test_id):
         for name, avg in avg_rows
     }
 
+    builder = VisualizationBuilder(conn)
+
+    visualizations = [
+        builder.build(test_id, [], "group")
+    ]
+    
+
+    builder = VisualizationBuilder(conn)
+
+
+    results = []
+
+    # for username, scale_name, score in rows:
+
+    #     cursor.execute("""
+    #         SELECT id
+    #         FROM scales
+    #         WHERE name = ?
+    #         AND EXISTS (
+    #             SELECT 1 FROM scales WHERE name = ?
+    #         )
+    #         LIMIT 1
+    #     """, (scale_name, scale_name))
+
+    #     scale_row = cursor.fetchone()
+
+    #     if not scale_row:
+    #         continue
+
+    #     results.append({
+    #         "username": username,
+    #         "scale_id": scale_row[0],
+    #         "score": score
+    #     })
+
+
+    for username, scale_name, score in rows:
+
+        cursor.execute("""
+            SELECT id
+            FROM scales
+            WHERE name = ?
+            LIMIT 1
+        """, (scale_name,))
+
+        scale_row = cursor.fetchone()
+
+        if not scale_row:
+            continue
+
+        results.append({
+            "username": username,
+            "scale_id": scale_row[0],
+            "score": score
+        })
+
+    visualizations = builder.build_group(
+        test_id,
+        results
+)
+
+
+    cursor.execute("""
+        SELECT title
+        FROM tests
+        WHERE id = ?
+    """, (test_id,))
+
+    test_title = cursor.fetchone()[0]
+
+
+    
+
     conn.close()
 
+ 
     return render_template(
         "teacher/group_results_dashboard.html",
+        scale_interpretations=scale_interpretations,
+        test_title=test_title,
         students_count=students_count,
         completed_count=completed_count,
         completed_percent=completed_percent,
-        scatter_data=scatter_data,
-        averages=averages
+        averages=averages,
+        visualizations=visualizations,
+        heatmap_rows=heatmap_rows,
+        scale_names=scale_names
     )
+
 
 #групповые тесты
 @app.route('/group_tests')
@@ -1628,7 +1934,35 @@ def test_page(test_id):
         ORDER BY order_num
     """, (test_id,))
 
-    questions = cursor.fetchall()
+
+
+
+    question_rows = cursor.fetchall()
+
+    questions = []
+
+    for q_id, question_text, q_type, order_num in question_rows:
+
+        try:
+            parsed_text = json.loads(question_text)
+        except:
+            parsed_text = [question_text]
+
+        cursor.execute("""
+            SELECT id, answer_text, score
+            FROM answer_options
+            WHERE question_id = ?
+        """, (q_id,))
+
+        options = cursor.fetchall()
+
+        questions.append({
+            'id': q_id,
+            'text': parsed_text,
+            'type': q_type,
+            'order': order_num,
+            'options': options
+        })
 
     conn.close()
 
@@ -1640,6 +1974,47 @@ def test_page(test_id):
         description=description,
         instruction=instruction
     )
+
+#     questions = []
+
+#     for q_id, question_text, q_type, order_num in question_rows:
+
+#         try:
+#             parsed_text = json.loads(question_text)
+#         except:
+#             parsed_text = [question_text]
+
+#         cursor.execute("""
+#             SELECT id, answer_text, score
+#             FROM answer_options
+#  WHERE question_id = ?
+#  """, (q_id,))
+
+#         options = cursor.fetchall()
+
+#         questions.append({
+#             'id': q_id,
+#             'text': parsed_text,
+#             'type': q_type,
+#             'order': order_num,
+#             'options': options
+#         })
+
+
+
+
+    # questions = cursor.fetchall()
+
+    # conn.close()
+
+    # return render_template(
+    #     "test.html",
+    #     questions=questions,
+    #     test_id=test_id,
+    #     title=title,
+    #     description=description,
+    #     instruction=instruction
+    # )
 
 
 @app.route('/cancel_test')
@@ -1695,6 +2070,58 @@ def submit_test():
                     INSERT INTO user_answers (attempt_id, question_id, ans_opt_id)
                     VALUES (?, ?, ?)
                 """, (attempt_id, q_id, ans_id))
+
+    # -------------------------
+    # CALCULATE RESULTS
+    # -------------------------
+
+    scale_scores = {}
+
+    cursor.execute("""
+        SELECT
+            ua.ans_opt_id,
+            ao.score,
+            q.scale_id
+        FROM user_answers ua
+
+        JOIN answer_options ao
+            ON ua.ans_opt_id = ao.id
+
+        JOIN questions q
+            ON ua.question_id = q.id
+
+        WHERE ua.attempt_id = ?
+    """, (attempt_id,))
+
+    rows = cursor.fetchall()
+
+    for ans_opt_id, score, scale_id in rows:
+
+        if scale_id not in scale_scores:
+            scale_scores[scale_id] = 0
+
+        scale_scores[scale_id] += score
+
+
+    # -------------------------
+    # SAVE RESULTS
+    # -------------------------
+
+    for scale_id, total_score in scale_scores.items():
+
+        cursor.execute("""
+            INSERT INTO user_results
+            (attempt_id, scale_id, user_id, score)
+            VALUES (?, ?, ?, ?)
+        """, (
+            attempt_id,
+            scale_id,
+            user_id,
+            total_score
+        ))
+
+
+
 
     conn.commit()
     conn.close()

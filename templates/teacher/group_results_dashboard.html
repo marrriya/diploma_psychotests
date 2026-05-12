@@ -6,168 +6,8 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<style>
+<link rel="stylesheet" href="/static/style/group_results_dashboard.css">
 
-body{
-    margin:0;
-    padding:40px;
-    background:#f4f6fb;
-    font-family:Arial,sans-serif;
-    color:#1e293b;
-}
-
-h1{
-    margin-bottom:10px;
-}
-
-.subtitle{
-    color:#64748b;
-    margin-bottom:30px;
-}
-
-/* GRID */
-
-.dashboard{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(420px,1fr));
-    gap:24px;
-}
-
-/* CARDS */
-
-.card{
-    background:white;
-    border-radius:24px;
-    padding:24px;
-    box-shadow:0 4px 20px rgba(0,0,0,0.06);
-}
-
-.big-card{
-    grid-column:1/-1;
-}
-
-.card h2{
-    margin-top:0;
-    margin-bottom:20px;
-    font-size:24px;
-}
-
-/* PROGRESS */
-
-.main-progress{
-    background:white;
-    border-radius:24px;
-    padding:28px;
-    margin-bottom:30px;
-    box-shadow:0 4px 20px rgba(0,0,0,0.06);
-}
-
-.progress-top{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:16px;
-}
-
-.progress-title{
-    font-size:24px;
-    font-weight:bold;
-}
-
-.progress-value{
-    font-size:22px;
-    font-weight:bold;
-    color:#22c55e;
-}
-
-.progress-bar{
-    width:100%;
-    height:22px;
-    background:#e2e8f0;
-    border-radius:999px;
-    overflow:hidden;
-}
-
-.progress-fill{
-    height:100%;
-    background:#22c55e;
-    border-radius:999px;
-}
-
-/* KPI */
-
-.kpi-grid{
-    display:grid;
-    grid-template-columns:repeat(4,1fr);
-    gap:20px;
-}
-
-.kpi{
-    background:white;
-    border-radius:22px;
-    padding:24px;
-    box-shadow:0 4px 20px rgba(0,0,0,0.06);
-}
-
-.kpi-label{
-    color:#64748b;
-    font-size:15px;
-}
-
-.kpi-value{
-    font-size:42px;
-    font-weight:bold;
-    margin-top:12px;
-}
-
-/* SCATTER */
-
-.scatter-wrapper{
-    height:420px;
-}
-
-/* SCALE */
-
-.scale-card{
-    background:#f8fafc;
-    border-radius:18px;
-    padding:18px;
-    margin-bottom:18px;
-}
-
-.scale-title{
-    font-size:20px;
-    font-weight:bold;
-    margin-bottom:20px;
-}
-
-.progress-row{
-    margin-bottom:12px;
-}
-
-.progress-label{
-    display:flex;
-    justify-content:space-between;
-}
-
-.small-progress{
-    width:100%;
-    height:14px;
-    background:#e2e8f0;
-    border-radius:999px;
-    overflow:hidden;
-}
-
-.small-fill{
-    height:100%;
-    border-radius:999px;
-}
-
-.green{background:#22c55e;}
-.orange{background:#f59e0b;}
-.red{background:#ef4444;}
-
-</style>
 </head>
 
 <body>
@@ -175,36 +15,23 @@ h1{
 <h1>Dashboard результатов группы</h1>
 
 <div class="subtitle">
-Тест: {{ test_title if test_title else "Аналитика результатов" }}
+Тест: {{ test_title }}
 </div>
-
-<!-- ================= PROGRESS ================= -->
 
 <div class="main-progress">
 
     <div class="progress-top">
-
-        <div class="progress-title">
-            Прохождение теста
-        </div>
-
-        <div class="progress-value">
-            {{ completed_percent }}%
-        </div>
-
+        <div class="progress-title">Прохождение теста</div>
+        <div class="progress-value">{{ completed_percent }}%</div>
     </div>
 
     <div class="progress-bar">
-        <div class="progress-fill"
-             style="width: {{ completed_percent }}%">
-        </div>
+        <div class="progress-fill" style="width: {{ completed_percent }}%"></div>
     </div>
 
 </div>
 
-<!-- ================= KPI ================= -->
-
-<div class="kpi-grid">
+<!-- <div class="kpi-grid">
 
     <div class="kpi">
         <div class="kpi-label">Студентов</div>
@@ -216,80 +43,378 @@ h1{
         <div class="kpi-value">{{ completed_count }}</div>
     </div>
 
-    <div class="kpi">
-        <div class="kpi-label">Средний показатель 1</div>
-        <div class="kpi-value">
-            {{ averages.values()|list|first if averages }}
-        </div>
+</div> -->
+<div class="stats-grid">
+
+    <div class="stat-card">
+        <div class="stat-title">Всего студентов</div>
+        <div class="stat-value">{{ students_count }}</div>
     </div>
 
-    <div class="kpi">
-        <div class="kpi-label">Средний показатель 2</div>
-        <div class="kpi-value">
-            {{ averages.values()|list|last if averages }}
-        </div>
+    <div class="stat-card">
+        <div class="stat-title">Прошли тест</div>
+        <div class="stat-value">{{ completed_count }}</div>
     </div>
 
 </div>
 
+<div class="averages-section">
+
+    <h2>Средние показатели группы</h2>
+
+    <div class="averages-grid">
+
+        {% for scale, avg in averages.items() %}
+
+        <div class="avg-card">
+
+            <div class="avg-name">
+                {{ scale }}
+            </div>
+
+            <div class="avg-value">
+                {{ avg }}
+            </div>
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+</div>
+
+
+<div class="dashboard" id="chartsContainer"></div>
+
+<!-- 
+<div class="distribution-section">
+
+    <h2>Распределение уровней</h2>
+
+    <div class="distribution-grid">
+
+        {% for scale in scale_names %}
+
+        <div class="distribution-card">
+
+            <div class="distribution-title">
+                {{ scale }}
+            </div>
+
+            {% set interp = scale_interpretations.get(scale, []) %}
+
+            {% for item in interp %}
+
+            {% set count = namespace(value=0) %}
+
+            {% for row in heatmap_rows %}
+
+                {% set val = row["values"].get(scale) %}
+
+                {% if val and val.title == item.title %}
+                    {% set count.value = count.value + 1 %}
+                {% endif %}
+
+            {% endfor %}
+
+            {% if students_count > 0 %}
+                {% set percent = ((count.value / students_count) * 100) | round(1) %}
+            {% else %}
+                {% set percent = 0 %}
+            {% endif %}
+
+            <div class="distribution-item">
+
+                <div>
+                    {{ item.title }}
+                </div>
+
+                <div class="distribution-percent">
+                    {{ percent }}%
+                </div>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+</div> -->
+
+
+<div class="distribution-section">
+
+    <h2>Распределение уровней по шкалам</h2>
+
+    <div class="distribution-grid">
+
+        {% for scale in scale_names %}
+
+        <div class="scale-card">
+
+            <div class="scale-title">
+                {{ scale }}
+            </div>
+
+            {% set interp = scale_interpretations.get(scale, []) %}
+
+            {% for item in interp %}
+
+                {# считаем процент #}
+                {% set ns = namespace(count=0) %}
+
+                {% for row in heatmap_rows %}
+
+                    {% set val = row["values"].get(scale) %}
+
+                    {% if val and val.title == item.title %}
+                        {% set ns.count = ns.count + 1 %}
+                    {% endif %}
+
+                {% endfor %}
+
+                {% set percent = (ns.count / students_count * 100) if students_count else 0 %}
+
+                <div class="progress-row">
+
+                    <div class="progress-label">
+                        <span>{{ item.title }}</span>
+                        <span>{{ percent|round(1) }}%</span>
+                    </div>
+
+                    <div class="small-progress">
+
+                        <div class="small-fill"
+                             style="
+                                width: {{ percent }}%;
+                                background: {{ 
+                                    'green' if loop.index0 == 0 
+                                    else 'orange' if loop.index0 == 1 
+                                    else 'red'
+                                }};
+                             ">
+                        </div>
+
+                    </div>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+</div>
 <br>
 
-<div class="dashboard">
 
-    <!-- SCATTER -->
+<div class="card big-card">
 
-    <div class="card">
+    <h2>Тепловая таблица результатов студентов</h2>
 
-        <h2>Распределение студентов</h2>
+    <table class="heatmap-table">
 
-        <div class="scatter-wrapper">
-            <canvas id="scatterChart"></canvas>
+        <thead>
+            <tr>
+
+                <th>Студент</th>
+
+                {% for scale in scale_names %}
+                    <th>{{ scale }}</th>
+                {% endfor %}
+
+            </tr>
+        </thead>
+
+        <tbody>
+
+            {% for row in heatmap_rows %}
+
+                <tr>
+
+                    <td>{{ row.username }}</td>
+
+                    {% for scale in scale_names %}
+
+                        {% set value = row["values"].get(scale, 0) %}
+
+                        {% set item = row["values"].get(scale) %}
+
+{% set item = row["values"].get(scale) %}
+
+<td
+    style="
+        background: {{ item.color if item else '#f1f5f9' }};
+        color: #0f172a;
+        transition: 0.2s;
+    "
+    title="
+        {{ item.title if item else '' }}
+        {% if item %}
+        ({{ item.level_index }}/{{ item.total_levels }})
+        {% endif %}
+    "
+>
+
+    {% if item %}
+        {{ item.score }}
+    {% else %}
+        —
+    {% endif %}
+
+</td>
+
+                    {% endfor %}
+
+                </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+<!-- 
+    <div class="legend">
+
+        <div class="legend-item">
+            <div class="legend-color low"></div>
+            Низкий уровень
         </div>
+
+        <div class="legend-item">
+            <div class="legend-color medium"></div>
+            Средний уровень
+        </div>
+
+        <div class="legend-item">
+            <div class="legend-color high"></div>
+            Высокий уровень
+        </div>
+
+    </div> -->
+    {% for scale in scale_names %}
+
+    <!-- <div style="margin-top:20px;">
+
+        <h3 style="margin-bottom:10px;">
+            {{ scale }} — легенда
+        </h3> -->
+
+        <!-- <div class="legend">
+
+            {% set interp = scale_interpretations.get(scale, []) %}
+
+            {% for i in range(interp|length) %}
+
+                {% set item = interp[i] %}
+
+                {% set color = '#000' %}
+
+                {% if interp|length > 1 %}
+
+                    {% set ratio = i / (interp|length - 1) %}
+
+                    {% set r = (255 * ratio) | int %}
+                    {% set g = (200 * (1 - ratio)) | int %}
+
+                    {% set color = "rgb(" ~ r ~ "," ~ g ~ ",80)" %}
+
+                {% endif %}
+
+                <div class="legend-item">
+
+                    <div class="legend-color"
+                         style="background: {{ color }}"></div>
+
+                    {{ item.title }}
+                    ({{ item.min }}–{{ item.max }})
+
+                </div>
+
+            {% endfor %}
+
+        </div> -->
+<!-- 
+    </div>
+
+{% endfor %}
+</div> -->
+<div class="legend-wrapper">
+
+    <h2>Легенда</h2>
+
+    <div class="legend-grid">
+
+        {% for scale in scale_names %}
+
+        <div class="legend-scale-card">
+
+            <div class="legend-scale-title">
+                {{ scale }}
+            </div>
+
+            {% set interp = scale_interpretations.get(scale, []) %}
+
+            {% for i in range(interp|length) %}
+
+                {% set item = interp[i] %}
+
+                {% set color = '#000' %}
+
+                {% if interp|length > 1 %}
+
+                    {% set ratio = i / (interp|length - 1) %}
+
+                    {% set r = (255 * ratio) | int %}
+                    {% set g = (200 * (1 - ratio)) | int %}
+
+                    {% set color = "rgb(" ~ r ~ "," ~ g ~ ",80)" %}
+
+                {% endif %}
+
+                <div class="legend-line">
+
+                    <div class="legend-left">
+
+                        <div class="legend-color"
+                             style="background: {{ color }}"></div>
+
+                        <span>{{ item.title }}</span>
+
+                    </div>
+
+                    <div class="legend-range">
+                        {{ item.min }}–{{ item.max }}
+                    </div>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+        {% endfor %}
 
     </div>
 
 </div>
 
 <script>
-
-const scatterData = {{ scatter_data | tojson }};
-
-new Chart(document.getElementById('scatterChart'), {
-
-    type:'scatter',
-
-    data:{
-        datasets: scatterData.map(s => ({
-            label: s.username,
-            data: [{ x: s.x, y: s.y }]
-        }))
-    },
-
-    options:{
-
-        maintainAspectRatio:false,
-
-        scales:{
-
-            x:{
-                min:0,
-                max:100,
-                title:{ display:true, text:'Шкала X' }
-            },
-
-            y:{
-                min:0,
-                max:100,
-                title:{ display:true, text:'Шкала Y' }
-            }
-
-        }
-
-    }
-
-});
-
+    const visualizations = {{ visualizations | tojson }};
 </script>
+
+<!-- <script src="/static/js/visualizations/"></script> -->
+<!-- <script src="/static/app.js"></script> -->
+<!-- <script type="module" src="/static/js/index.js"></script> -->
+<script type="module" src="/static/js/visualizations/dashboard.js"></script>
 
 </body>
 </html>

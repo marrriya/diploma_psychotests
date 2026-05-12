@@ -10,6 +10,7 @@ const registry = {
     scatter: renderScatter
 };
 
+
 if (!chartConfig || !chartConfig.type) {
     console.error("chartConfig пустой");
 } else {
