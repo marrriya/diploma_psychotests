@@ -28,8 +28,7 @@ class VisualizationBuilder:
         roles = self._get_roles(viz["id"])
         settings = self._get_settings(viz["id"])
 
-        series = self._build_series(results, roles, viz["id"])  # 👈 FIX
-        # scales = self._get_scales(test_id)
+
         scale_ranges = self._get_scale_ranges_by_role(viz["id"])
 
         return {
