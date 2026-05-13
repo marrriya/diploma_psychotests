@@ -1,6 +1,6 @@
 body{
     margin:0;
-    padding:40px;
+    padding:50px;
     background:#f4f6fb;
     font-family:Arial;
     color:#1e293b;
@@ -67,15 +67,16 @@ h1{ margin-bottom:10px; }
 
 .heatmap-table th{
     background:#e2e8f0;
-    padding:16px;
+    padding:12px;
     text-align:center;
+    font-size:13px;
 }
 
 .heatmap-table td{
-    padding:18px;
+    padding:14px;
     text-align:center;
     font-weight:bold;
-    font-size:18px;
+    font-size:14px;
 }
 
 .low{
@@ -121,19 +122,19 @@ h1{ margin-bottom:10px; }
 
 .stat-card{
     background:white;
-    border-radius:24px;
-    padding:28px;
+    border-radius:20px;
+    padding:20px;
     box-shadow:0 4px 20px rgba(0,0,0,0.06);
 }
 
 .stat-title{
     color:#64748b;
-    font-size:15px;
-    margin-bottom:10px;
+    font-size:13px;
+    margin-bottom:6px;
 }
 
 .stat-value{
-    font-size:42px;
+    font-size:28px;
     font-weight:700;
 }
 
@@ -158,8 +159,8 @@ h1{ margin-bottom:10px; }
 
 .avg-card{
     background:white;
-    border-radius:20px;
-    padding:22px;
+    border-radius:18px;
+    padding:18px;
     box-shadow:0 4px 18px rgba(0,0,0,0.05);
 }
 
@@ -237,7 +238,7 @@ h1{ margin-bottom:10px; }
 }
 
 .legend-scale-title{
-    font-size:20px;
+    font-size:16px;
     font-weight:700;
     margin-bottom:18px;
 }
@@ -265,42 +266,190 @@ h1{ margin-bottom:10px; }
     height:18px;
     border-radius:5px;
 }
+.small-progress {
+    width: 100%;
+    height: 10px;
+
+    background: #ecfdf5;
+
+    border-radius: 999px;
+
+    overflow: hidden;
+}
+
+.small-fill {
+    height: 100%;
+    border-radius: 999px;
+
+    transition: width 0.4s ease;
+}
+/* =========================
+   SCALE DISTRIBUTION
+========================= */
 
 .scale-card{
-    background:#f8fafc;
-    border-radius:18px;
-    padding:20px;
-    box-shadow:0 4px 16px rgba(0,0,0,0.05);
+    background:white;
+    border-radius:24px;
+    padding:24px;
+    box-shadow:0 4px 20px rgba(0,0,0,0.05);
 }
 
 .scale-title{
-    font-size:20px;
+    font-size:16px;
     font-weight:700;
-    margin-bottom:18px;
+    margin-bottom:22px;
+    color:#0f172a;
 }
 
 .progress-row{
-    margin-bottom:14px;
+    margin-bottom:18px;
 }
 
 .progress-label{
     display:flex;
     justify-content:space-between;
+    align-items:center;
+
+    margin-bottom:8px;
+
     font-size:14px;
-    margin-bottom:6px;
-    color:#334155;
+    font-weight:600;
+
+    color:#475569;
 }
 
 .small-progress{
     width:100%;
     height:12px;
+
     background:#e2e8f0;
+
     border-radius:999px;
+
     overflow:hidden;
 }
 
 .small-fill{
     height:100%;
     border-radius:999px;
-    transition:width 0.3s ease;
+
+    transition:width 0.4s ease;
+
+    background:linear-gradient(
+        90deg,
+        #67e8f9 0%,
+        #60a5fa 45%,
+        #818cf8 100%
+    );
 }
+
+/* hover */
+
+.scale-card:hover,
+.legend-scale-card:hover,
+.avg-card:hover,
+.stat-card:hover,
+.card:hover{
+    transform:translateY(-2px);
+
+    transition:0.2s ease;
+
+    box-shadow:0 10px 28px rgba(0,0,0,0.08);
+}
+.header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:30px;
+}
+
+.title{
+    font-size:24px;
+    font-weight:700;
+    margin:0;
+    color:#0f172a;
+}
+h2{
+    font-size:18px;
+    font-weight:700;
+}
+
+.header-actions{
+    display:flex;
+    gap:12px;
+}
+
+/* .btn{
+    padding:10px 16px;
+    border-radius:12px;
+    text-decoration:none;
+    font-weight:600;
+    font-size:14px;
+    transition:0.2s;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+} */
+.btn {
+    padding: 8px 14px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    border: 1px solid #d0d5dd;
+    background: #4F7CFE;
+    color: white;
+    transition: 0.15s ease;
+}
+
+.btn:hover {
+    background: #f3f4f6;
+}
+
+.btn-back {
+    border-color: #cbd5e1;
+}
+
+.btn-art {
+    border-color: #cbd5e1;
+}
+
+.btn-back{
+    background:#e2e8f0;
+    color:#0f172a;
+}
+
+.btn-back:hover{
+    background:#cbd5e1;
+}
+
+
+
+.btn-art:hover{
+    opacity:0.9;
+    transform:translateY(-1px);
+}
+.header{
+    display:grid;
+    grid-template-columns: 120px 1fr 180px;
+    align-items:center;
+    padding:15px 30px;
+    background:white;
+    border-bottom:1px solid #ddd;
+}
+
+/* центр */
+.header-center{
+    text-align:center;
+}
+
+/* слева */
+.header-left{
+    justify-self:start;
+}
+
+/* справа */
+.header-right{
+    justify-self:end;
+}
+

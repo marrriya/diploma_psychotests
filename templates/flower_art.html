@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Flower Art — Тест Айзенка</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style/flower_art.css') }}">
+</head>
+
+<body>
+    <a href="javascript:history.back()" class="back-btn">← Назад</a>
+
+<div class="page">
+
+    <h1>Визуализация результатов тест Айзенка</h1>
+
+    <p class="subtitle">
+        Flower Art — Цифровой портрет группы 
+    </p>
+    <div class="legend-block">
+
+    <h2 class="legend-title">Легенда интерпретации</h2>
+
+    <div class="legend">
+
+        <div class="legend-item">
+
+            <h3>Искренность</h3>
+            <p>цвет лепестков</p>
+
+            <div class="legend-scale colors">
+
+                <div class="legend-row">
+                    <span class="dot yellow"></span>
+                    <span>Откровенный</span>
+                </div>
+
+                <div class="legend-row">
+                    <span class="dot orange"></span>
+                    <span>Ситуативный</span>
+                </div>
+
+                <div class="legend-row">
+                    <span class="dot red"></span>
+                    <span>Лживый</span>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="legend-item">
+
+            <h3>Невротизм</h3>
+            <p>количество лепестков</p>
+
+            <div class="legend-scale">
+
+                <div class="legend-row">
+                    <span class="size-dot sm"></span>
+                    <span>низкий уровень</span>
+                </div>
+
+                <div class="legend-row">
+                    <span class="size-dot md"></span>
+                    <span>средний уровень</span>
+                </div>
+
+                <div class="legend-row">
+                    <span class="size-dot lg"></span>
+                    <span>высокий уровень</span>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="legend-item">
+
+            <h3>Экстравертированность</h3>
+            <p>размер цветка</p>
+
+            <div class="legend-scale">
+
+                <div class="legend-row">
+                    <span class="flower-size xs"></span>
+                    <span>интроверт</span>
+                </div>
+
+                <div class="legend-row">
+                    <span class="flower-size md"></span>
+                    <span>амбиверт</span>
+                </div>
+
+                <div class="legend-row">
+                    <span class="flower-size xl"></span>
+                    <span>экстраверт</span>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+    <div class="flower-block">
+
+        <!-- <div class="legend">
+
+            <div class="legend-item">
+
+                <h3>Искренность</h3>
+
+                <p>цвет лепестков</p>
+
+                <div class="legend-scale colors">
+
+                    <div class="legend-row">
+                        <span class="dot yellow"></span>
+                        <span>Откровенный</span>
+                    </div>
+
+                    <div class="legend-row">
+                        <span class="dot orange"></span>
+                        <span>Ситуативный</span>
+                    </div>
+
+                    <div class="legend-row">
+                        <span class="dot red"></span>
+                        <span>Лживый</span>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="legend-item">
+
+                <h3>Невротизм</h3>
+
+                <p>количество лепестков</p>
+
+                <div class="legend-scale">
+
+                    <div class="legend-row">
+                        <span class="size-dot sm"></span>
+                        <span>Конкордант</span>
+                    </div>
+
+                    <div class="legend-row">
+                        <span class="size-dot md"></span>
+                        <span>Нормостеник</span>
+                    </div>
+
+                    <div class="legend-row">
+                        <span class="size-dot lg"></span>
+                        <span>Дискордант</span>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="legend-item">
+
+                <h3>Экстравертированность</h3>
+
+                <p>размер цветка</p>
+
+                <div class="legend-scale">
+
+                    <div class="legend-row">
+                        <span class="flower-size xs"></span>
+                        <span>Интроверт</span>
+                    </div>
+
+                    <div class="legend-row">
+                        <span class="flower-size md"></span>
+                        <span>Амбиверт</span>
+                    </div>
+
+                    <div class="legend-row">
+                        <span class="flower-size xl"></span>
+                        <span>Экстраверт</span>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div> -->
+
+        <div id="flowersContainer" class="flowers-grid"></div>
+
+    </div>
+
+</div>
+
+<script>
+
+window.FLOWERS = [
+
+    {
+        name: "st1",
+        sincerity: 7,
+        neuroticism: 9,
+        extraversion: 14
+    },
+
+    {
+        name: "st2",
+        sincerity: 3,
+        neuroticism: 10,
+        extraversion: 13
+    },
+
+    {
+        name: "st3",
+        sincerity: 1,
+        neuroticism: 14,
+        extraversion: 15
+    },
+
+    {
+        name: "st4",
+        sincerity: 6,
+        neuroticism: 0,
+        extraversion: 9
+    }
+
+];
+
+</script>
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+
+<script src="{{ url_for('static', filename='js/flower_art.js') }}"></script>
+
+</body>
+</html>

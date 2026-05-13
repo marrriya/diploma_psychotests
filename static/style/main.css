@@ -324,3 +324,118 @@ main {
 .create-card {
     min-height: 100px;
 }
+
+/* =========================
+   CREATE CARD
+========================= */
+
+.create-card{
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+
+    text-align:center;
+
+    border:2px dashed #4F7CFE;
+    background:#f7f9ff;
+
+    min-height:180px;
+}
+
+.create-card:hover{
+    background:#eef3ff;
+}
+
+.plus{
+    font-size:42px;
+    font-weight:700;
+    color:#4F7CFE;
+
+    margin-bottom:10px;
+}
+
+.create-text{
+    font-size:16px;
+    font-weight:600;
+    color:#4F7CFE;
+}
+
+/* =========================
+   TEACHER TEST CARD
+========================= */
+
+.teacher-card{
+    position:relative;
+    overflow:hidden;
+}
+
+.test-link{
+    position:absolute;
+    inset:0;
+    z-index:1;
+}
+
+/* крестик */
+
+.delete-icon{
+    position:absolute;
+    top:12px;
+    right:14px;
+
+    z-index:3;
+
+    text-decoration:none;
+
+    font-size:22px;
+    line-height:1;
+
+    color:#94a3b8;
+
+    transition:0.2s ease;
+}
+
+.delete-icon:hover{
+    color:#ef4444;
+    transform:scale(1.1);
+}
+
+/* кнопка */
+
+.test-actions{
+    margin-top:18px;
+    position:relative;
+    z-index:2;
+}
+
+.edit-btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+
+    padding:8px 14px;
+
+    border-radius:8px;
+
+    background:#4F7CFE;
+    color:white;
+
+    text-decoration:none;
+
+    font-size:14px;
+    font-weight:600;
+
+    transition:0.2s ease;
+}
+
+.edit-btn:hover{
+    background:#3b6df8;
+}
+
+/* текст по центру в create */
+
+.create-card .plus,
+.create-card .create-text{
+    position:relative;
+    z-index:2;
+}

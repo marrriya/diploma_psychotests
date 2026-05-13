@@ -12,10 +12,21 @@
 
 <body>
 
-<h1>Dashboard результатов группы</h1>
+<div class="header">
 
-<div class="subtitle">
-Тест: {{ test_title }}
+    <a href="javascript:history.back()" class="btn btn-back header-left">
+        ← Назад
+    </a>
+
+    <div class="header-center">
+        <h1 class="title">{{ test_title }}</h1>
+        <div class="subtitle">Dashboard результатов группы</div>
+    </div>
+
+    <a href="/art/1" class="btn btn-art header-right">
+        Цифровой портрет
+    </a>
+
 </div>
 
 <div class="main-progress">
@@ -31,19 +42,7 @@
 
 </div>
 
-<!-- <div class="kpi-grid">
 
-    <div class="kpi">
-        <div class="kpi-label">Студентов</div>
-        <div class="kpi-value">{{ students_count }}</div>
-    </div>
-
-    <div class="kpi">
-        <div class="kpi-label">Прошли тест</div>
-        <div class="kpi-value">{{ completed_count }}</div>
-    </div>
-
-</div> -->
 <div class="stats-grid">
 
     <div class="stat-card">
@@ -189,7 +188,7 @@
 
                     <div class="small-progress">
 
-                        <div class="small-fill"
+                        <!-- <div class="small-fill"
                              style="
                                 width: {{ percent }}%;
                                 background: {{ 
@@ -198,6 +197,16 @@
                                     else 'red'
                                 }};
                              ">
+                        </div> -->
+                        <div class="small-fill" style="width: {{ percent }}%;">
+                            <!-- style="
+                                width: {{ percent }}%;
+                                background: linear-gradient(
+                                    90deg,
+                                    #86efac 0%,
+                                    #4ade80 100%
+                                );
+                            "> -->
                         </div>
 
                     </div>
@@ -372,11 +381,12 @@
                 {% if interp|length > 1 %}
 
                     {% set ratio = i / (interp|length - 1) %}
+                    
+                    {% set r = (103 + (129 - 103) * ratio) | int %}
+                    {% set g = (232 + (140 - 232) * ratio) | int %}
+                    {% set b = (250 + (248 - 250) * ratio) | int %}
 
-                    {% set r = (255 * ratio) | int %}
-                    {% set g = (200 * (1 - ratio)) | int %}
-
-                    {% set color = "rgb(" ~ r ~ "," ~ g ~ ",80)" %}
+                    {% set color = "rgb(" ~ r ~ "," ~ g ~ "," ~ b ~ ")" %}
 
                 {% endif %}
 

@@ -1,119 +1,164 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <title>Психологический Дашборд</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style/portrait.css') }}">
+    <meta charset="UTF-8">
+    <title>Flower Art — Тест Айзенка</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/flower_art.css') }}">
+</head>
 
 <body>
-<header class="header">
-    <div class="logo">MindScape</div>
 
-    <nav class="nav">
-        <a href="/">Каталог тестов</a>
-        <a href="/completed">Пройденные тесты</a>
-        <a href="/portrait" class="active">Цифровой портрет</a>
-    </nav>
+<div class="page">
 
-    <div class="user-panel">
-        <span class="username">{{ session.username }}</span>
-        <a href="/logout" class="logout">Выйти</a>
-    </div>
-</header>
+    <h1>🌸 Flower Art — Цифровой портрет группы</h1>
 
-<main>
+    <p class="subtitle">
+        Визуализация результатов теста Айзенка
+    </p>
 
-<h2>Цифровой портрет личности</h2>
+    <div class="legend">
 
-<div class="dashboard">
-  <div class="column left">
-    <div class="chart-card">
-      <div class="chart-title">Тест Айзенка</div>
-      <canvas id="eysenckChart"></canvas>
-    </div>
-    <div class="chart-card">
-      <div class="chart-title">Характерологическая акцентуация личности</div>
-      <canvas id="characterChart"></canvas>
-    </div>
-    <div class="chart-card">
-      <div class="chart-title">Тест Стреляу</div>
-      <canvas id="strelyauChart"></canvas>
-    </div>
-  </div>
+        <h2>Легенда</h2>
 
-  <div class="column right">
-    <div class="chart-card">
-      <div class="chart-title">Опросник Леонгарда</div>
-      <canvas id="leongardChart"></canvas>
+        <div class="legend-grid">
+
+            <div class="legend-card">
+                <h3>🎨 Искренность → Цвет</h3>
+
+                <ul>
+                    <li>0–3 — Откровенный</li>
+                    <li>4–6 — Ситуативный</li>
+                    <li>7–9 — Лживый</li>
+                </ul>
+            </div>
+
+            <div class="legend-card">
+                <h3>🌼 Невротизм → Количество лепестков</h3>
+
+                <ul>
+                    <li>0–2 — Сверхконкордант</li>
+                    <li>3–6 — Конкордант</li>
+                    <li>7–10 — Потенциальный конкордант</li>
+                    <li>11–14 — Нормостеник</li>
+                    <li>15–18 — Потенциальный дискордант</li>
+                    <li>19–22 — Дискордант</li>
+                    <li>23–24 — Сверхдискордант</li>
+                </ul>
+            </div>
+
+            <div class="legend-card">
+                <h3>📏 Экстравертированность → Размер</h3>
+
+                <ul>
+                    <li>0–2 — Сверхинтроверт</li>
+                    <li>3–6 — Интроверт</li>
+                    <li>7–10 — Потенциальный интроверт</li>
+                    <li>11–14 — Амбиверт</li>
+                    <li>15–18 — Потенциальный экстраверт</li>
+                    <li>19–22 — Экстраверт</li>
+                    <li>23–24 — Сверхэкстраверт</li>
+                </ul>
+            </div>
+
+        </div>
+
     </div>
-    <div class="chart-card" style="flex:0.3;">
-      <div class="chart-title">Экстраверсия и инстроверсия Лутошкина</div>
-      <canvas id="lutoshkinChart"></canvas>
-    </div>
-  </div>
+
+    <div id="flowersContainer" class="flowers-grid"></div>
+
 </div>
-</main>
+
 <script>
-const optionsBase = {
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: { legend: { display: false } }
-};
 
-// 1. Айзенк
-new Chart(document.getElementById('eysenckChart'), {
-  type: 'scatter',
-  data: { datasets: [{ data: [{x:9,y:1}], backgroundColor:'red', pointRadius:8, pointHoverRadius:12 }] },
-  options: { 
-    ...optionsBase,
-    scales: {
-      x:{ min:0,max:24, title:{display:true,text:'Интроверт ←→ Экстраверт'}, grid:{ drawTicks:false, color:'#eee' } },
-      y:{ min:0,max:24, title:{display:true,text:'Невротизм'}, grid:{ drawTicks:false, color:'#eee' } }
+window.FLOWERS = [
+    {
+        name: "Student 1",
+        sincerity: 14,
+        neuroticism: 9,
+        extraversion: 7
     },
-    plugins:{ tooltip:{ callbacks:{ label: ctx=>`Экстраверсия: ${ctx.raw.x}, Невротизм: ${ctx.raw.y}` } } }
-  }
-});
-
-// 2. Характерологический
-new Chart(document.getElementById('characterChart'), {
-  type:'bar',
-  data:{ labels:['Э-I','Эксплозивная','Психастеническая','Шизоид','Истероид','Направленность','Нервно-психическая'], datasets:[{ data:[20,12,38,46,42,33,50], backgroundColor:'#36A2EB' }] },
-  options:{ ...optionsBase, scales:{ y:{ beginAtZero:true, grid:{ color:'#eee' } }, x:{ grid:{ color:'#eee' } } }, plugins:{ tooltip:{ enabled:true } } }
-});
-
-// 3. Стреляу
-new Chart(document.getElementById('strelyauChart'), {
-  type:'bar',
-  data:{ labels:['Возбуждение','Торможение','Подвижность'], datasets:[{ data:[24,56,40], backgroundColor:['#FF6384','#36A2EB','#FFCE56'] }] },
-  options:{ ...optionsBase, scales:{ y:{ beginAtZero:true, max:86, grid:{ color:'#eee' } }, x:{ grid:{ color:'#eee' } } }, plugins:{ tooltip:{ enabled:true } } }
-});
-
-// 4. Леонгард (Radar)
-new Chart(document.getElementById('leongardChart'), {
-  type:'radar',
-  data:{ labels:['Гипертимный','Возбудимый','Эмотивный','Педантичный','Тревожный','Циклотимный','Демонстративный','Неуравновешенный','Дистимный','Экзальтированный'], datasets:[{ data:[0,4,1,1,1,0,2,0,3,0], backgroundColor:'rgba(54,162,235,0.3)', borderColor:'#36A2EB', pointBackgroundColor:'#36A2EB', pointHoverRadius:8 }] },
-  options:{ ...optionsBase, scales:{ r:{ suggestedMin:0,  grid:{ color:'#eee' }, pointLabels:{ color:'#333', font:{ size:12 } } } } }
-});
-
-// 5. Лутушкина (горизонтальная)
-const lutoshkinValue = -10;
-new Chart(document.getElementById('lutoshkinChart'), {
-  type:'bar',
-  data:{ labels:[''], datasets:[{ data:[lutoshkinValue], backgroundColor: lutoshkinValue<0 ? '#1e90ff':'#ff8c00' }] },
-  options:{ 
-    ...optionsBase,
-    indexAxis:'y',
-    scales:{
-      x:{ min:-32, max:32, grid:{ display:false, drawTicks:false } },
-      y:{ ticks:{ display:false }, grid:{ display:false } }
+    {
+        name: "Student 2",
+        sincerity: 13,
+        neuroticism: 10,
+        extraversion: 3
     },
-    plugins:{ tooltip:{ callbacks:{ label:ctx=>`Экстравертированность: ${ctx.parsed.x}` } } }
-  }
-});
+    {
+        name: "Student 3",
+        sincerity: 15,
+        neuroticism: 14,
+        extraversion: 1
+    },
+    {
+        name: "Student 4",
+        sincerity: 9,
+        neuroticism: 0,
+        extraversion: 6
+    }
+];
 
-// });
 </script>
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="{{ url_for('static', filename='js/flower_art.js') }}"></script>
+
+</body>
+</html><!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Групповой цифровой портрет</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/flower_art.css') }}">
+</head>
+
+<body>
+
+<div class="page">
+
+    <h1>Цифровой портрет</h1>
+
+    <div class="flower-wrapper">
+
+        <svg id="flowerCanvas"
+             width="500"
+             height="500"
+             viewBox="0 0 500 500">
+        </svg>
+
+    </div>
+    <div class="legend">
+        <h3>Легенда</h3>
+
+        <ul>
+            <li>🌸 Форма лепестков → Экстраверсия</li>
+            <li>🎨 Цвет → Невротизм</li>
+            <li>📏 Размер → Тревожность</li>
+            <li>🌼 Кол-во лепестков → Экстраверсия (интенсивность)</li>
+            <li>🍃 Левый лист → Невротизм</li>
+            <li>🍃 Правый лист → Тревожность</li>
+        </ul>
+    </div>
+
+    <div id="flowersContainer"></div>
+
+</div>
+
+<script>
+
+    window.FLOWERS = {{ flowers | tojson }};
+    window.ROLE_NAMES = {{ role_names | tojson }};
+
+</script>
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+
+<script src="{{ url_for('static', filename='js/flower_art.js') }}"></script>
+
 
 </body>
 </html>

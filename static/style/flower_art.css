@@ -1,0 +1,335 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background: #F0F0F5;
+    color: #2F3A59;
+}
+
+.page {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 30px;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 10px;
+
+    color: #2F3A59;
+}
+
+.subtitle {
+    text-align: center;
+    color: #7B8191;
+    margin-bottom: 35px;
+}
+
+.flower-block {
+
+    background: white;
+
+    border-radius: 22px;
+
+    padding: 35px;
+
+    box-shadow:
+        0 8px 30px rgba(0,0,0,0.06);
+}
+
+/* =========================
+   LEGEND
+========================= */
+
+.legend {
+
+    display: grid;
+
+    grid-template-columns: repeat(3, 1fr);
+
+    gap: 30px;
+
+    margin-bottom: 40px;
+}
+
+.legend-item h3 {
+
+    margin-bottom: 4px;
+
+    font-size: 18px;
+}
+
+.legend-item p {
+
+    margin-top: 0;
+
+    color: #9AA3B2;
+
+    font-size: 13px;
+}
+
+.legend-scale {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.legend-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    font-size: 14px;
+}
+
+/* COLORS */
+
+.dot {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+}
+
+.yellow {
+    background: #F2C66D;
+}
+
+.orange {
+    background: #E8A96B;
+}
+
+.red {
+    background: #D98973;
+}
+
+/* SIZE DOTS */
+
+.size-dot {
+    border-radius: 50%;
+    background: #4F7CFE;
+}
+
+.size-dot.sm {
+    width: 10px;
+    height: 10px;
+}
+
+.size-dot.md {
+    width: 18px;
+    height: 18px;
+}
+
+.size-dot.lg {
+    width: 28px;
+    height: 28px;
+}
+
+/* FLOWER SIZE */
+
+.flower-size {
+    border-radius: 50%;
+    border: 2px solid #4F7CFE;
+}
+
+.flower-size.xs {
+    width: 12px;
+    height: 12px;
+}
+
+.flower-size.md {
+    width: 22px;
+    height: 22px;
+}
+
+.flower-size.xl {
+    width: 34px;
+    height: 34px;
+}
+
+/* =========================
+   FLOWERS
+========================= */
+
+.flowers-grid {
+
+    display: grid;
+
+    grid-template-columns: repeat(4, 1fr);
+
+    gap: 10px;
+}
+
+.flower-item {
+
+    position: relative;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.flower-circle {
+
+    width: 260px;
+    height: 260px;
+
+    border-radius: 50%;
+
+    background:
+        radial-gradient(circle at center,
+        #ffffff 0%,
+        #f7f8ff 100%);
+
+    border: 1px solid #E6EAF2;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    transition: 0.3s ease;
+}
+
+.flower-circle:hover {
+
+    transform: translateY(-5px);
+
+    box-shadow:
+        0 10px 30px rgba(79,124,254,0.12);
+}
+
+.student-name {
+
+    margin-top: 14px;
+
+    font-size: 16px;
+    font-weight: 600;
+
+    color: #2F3A59;
+}
+
+svg {
+    overflow: visible;
+}
+
+/* =========================
+   TOOLTIP
+========================= */
+
+.tooltip {
+
+    position: absolute;
+
+    top: -10px;
+    left: 50%;
+
+    transform: translateX(-50%);
+
+    background: white;
+
+    border-radius: 12px;
+
+    padding: 14px 16px;
+
+    box-shadow:
+        0 8px 20px rgba(0,0,0,0.08);
+
+    font-size: 13px;
+
+    width: 180px;
+
+    opacity: 0;
+    pointer-events: none;
+
+    transition: 0.25s ease;
+
+    z-index: 10;
+}
+
+.flower-item:hover .tooltip {
+    opacity: 1;
+}
+
+.tooltip-title {
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.tooltip-row {
+    margin-bottom: 5px;
+}
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 1200px) {
+
+    .flowers-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .legend {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 700px) {
+
+    .flowers-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .flower-circle {
+        width: 220px;
+        height: 220px;
+    }
+}
+.legend-block {
+    background: white;
+    border-radius: 22px;
+    padding: 30px;
+    margin-bottom: 30px;
+
+    box-shadow: 0 8px 30px rgba(0,0,0,0.06);
+}
+
+.legend-title {
+    text-align: left;
+    margin-bottom: 20px;
+
+    font-size: 18px;
+    color: #2F3A59;
+}
+
+.legend {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+}
+
+.back-btn {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+
+    background: white;
+    border: 1px solid #E0E0E0;
+
+    padding: 8px 14px;
+    border-radius: 10px;
+
+    text-decoration: none;
+    color: #2F3A59;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+
+    transition: 0.2s ease;
+    z-index: 1000;
+}
+
+.back-btn:hover {
+    transform: translateY(-2px);
+    border-color: #4F7CFE;
+}

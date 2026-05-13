@@ -5,6 +5,8 @@
     <title>Группы преподавателя</title>
 
     <link rel="stylesheet" href="{{ url_for('static', filename='style/main.css') }}">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/groups.css') }}">
 </head>
 
 <body>
@@ -73,6 +75,9 @@
                 {% for group in groups %}
 
                     <div class="group-card">
+                        <a href="/teacher/delete_group/{{ group.id }}" class="group-delete">
+                            ✕
+                        </a>
 
                         <!-- НАЗВАНИЕ -->
 
@@ -210,7 +215,7 @@
 
                         <!-- КНОПКИ -->
 
-                        <div class="group-actions">
+                        <!-- <div class="group-actions">
 
                             <a href="/teacher/group/{{ group.id }}"
                                class="btn">
@@ -226,7 +231,7 @@
 
                             </a>
 
-                        </div>
+                        </div> -->
 
                     </div>
 

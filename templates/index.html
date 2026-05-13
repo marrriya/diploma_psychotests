@@ -16,7 +16,7 @@
     <nav class="nav">
         <a href="/" class="active">Каталог тестов</a>
         <a href="/completed">Пройденные тесты</a>
-        <a href="/portrait">Цифровой портрет</a>
+        <!-- <a href="/portrait">Цифровой портрет</a> -->
         <a href="/group_tests">Групповые тесты</a>
     </nav>
 
@@ -24,7 +24,7 @@
 
     <div class="user-panel">
         {% if username %}
-            <span class="username">Привет, {{ username }}</span>
+            <span class="username">{{ username }}</span>
             <a href="/logout" class="logout">Выйти</a>
         {% else %}
             <a href="/auth">Войти</a>

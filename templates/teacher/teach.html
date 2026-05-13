@@ -19,7 +19,7 @@
     </nav>
 
     <div class="user-panel">
-        <span class="username">Привет, {{ username }}</span>
+        <span class="username">{{ username }}</span>
         <a href="/logout" class="logout">Выйти</a>
     </div>
 </header>
@@ -37,29 +37,57 @@
             <div class="create-text">Создать тест</div>
         </a>
        
-        {% for test in teacher_tests %}
-            <!-- <a href="/test/{{ test.id }}" class="test-card">
-                <div class="test-title">{{ test.title }}</div>
-
-                
-                <div class="test-topic">{{ test.topic }}</div>
-
-                <div class="test-desc">{{ test.description }}</div>
-            </a> -->
-            <div class="test-card">
+        <!-- {% for test in teacher_tests %}
+          
+            
+            div class="test-card">
                 <a href="/test/{{ test.id }}" class="test-link"></a>
 
                 <div class="test-title">{{ test.title }}</div>
                 <div class="test-topic">{{ test.topic }}</div>
                 <div class="test-desc">{{ test.description }}</div>
 
-                <!-- КНОПКИ -->
                 <div class="test-actions">
                     <a href="/teacher/edit_test/{{ test.id }}" class="btn edit-btn">✏️</a>
                     <a href="/teacher/delete_test/{{ test.id }}" class="btn delete-btn">🗑</a>
                 </div>
             </div>
-        {% endfor %}
+        {% endfor %} -->
+
+
+        {% for test in teacher_tests %}
+
+<div class="test-card teacher-card">
+
+    <!-- ссылка на тест -->
+    <a href="/test/{{ test.id }}" class="test-link"></a>
+
+    <!-- крестик -->
+    <a href="/teacher/delete_test/{{ test.id }}"
+       class="delete-icon"
+       onclick="return confirm('Удалить тест?')">
+        ×
+    </a>
+
+    <div class="test-title">{{ test.title }}</div>
+
+    <div class="test-topic">{{ test.topic }}</div>
+
+    <div class="test-desc">{{ test.description }}</div>
+
+    <!-- кнопка редактирования -->
+    <div class="test-actions">
+
+        <a href="/teacher/edit_test/{{ test.id }}"
+           class="edit-btn">
+            Редактировать
+        </a>
+
+    </div>
+
+</div>
+
+{% endfor %}
 
 
 

@@ -20,8 +20,6 @@ export function renderRadarMulti(canvas, config) {
 
     // =========================
     // LABELS
-    // Экстраверсия · student1
-    // Экстраверсия · student2
     // =========================
 
     const labels = [];
@@ -37,17 +35,35 @@ export function renderRadarMulti(canvas, config) {
     });
 
     // =========================
-    // COLORS PER SCALE
+    // MODERN SOFT COLORS
     // =========================
 
-    const scaleColors = {};
-
-    scales.forEach((scale, idx) => {
-
-        scaleColors[scale] =
-            `hsl(${idx * 360 / scales.length}, 80%, 55%)`;
-
-    });
+    const palette = [
+        {
+            border: '#60a5fa',
+            background: 'rgba(96,165,250,0.16)'
+        },
+        {
+            border: '#38bdf8',
+            background: 'rgba(56,189,248,0.16)'
+        },
+        {
+            border: '#818cf8',
+            background: 'rgba(129,140,248,0.16)'
+        },
+        {
+            border: '#34d399',
+            background: 'rgba(52,211,153,0.16)'
+        },
+        {
+            border: '#f9a8d4',
+            background: 'rgba(249,168,212,0.16)'
+        },
+        {
+            border: '#fca5a5',
+            background: 'rgba(252,165,165,0.16)'
+        }
+    ];
 
     // =========================
     // DATASETS
@@ -65,8 +81,6 @@ export function renderRadarMulti(canvas, config) {
                     p => p.username === student
                 );
 
-                // показываем значения
-                // ТОЛЬКО для своей шкалы
                 if (currentScale === scale) {
 
                     data.push(
@@ -83,38 +97,63 @@ export function renderRadarMulti(canvas, config) {
 
         });
 
+        const color =
+            palette[scaleIndex % palette.length];
+
         return {
 
             label: scale,
 
             data,
 
-            borderColor: scaleColors[scale],
-            backgroundColor:
-                scaleColors[scale].replace("55%)", "55%, 0.15)"),
+            borderColor: color.border,
+
+            backgroundColor: color.background,
+
+            pointBackgroundColor: color.border,
+
+            pointBorderColor: '#ffffff',
+
+            pointHoverBackgroundColor: '#ffffff',
+
+            pointHoverBorderColor: color.border,
 
             pointRadius: 5,
-            borderWidth: 2,
-            spanGaps: false
+
+            pointHoverRadius: 7,
+
+            borderWidth: 3,
+
+            spanGaps: false,
+
+            tension: 0.35
         };
     });
+
+    // =========================
+    // MAX VALUE
+    // =========================
+
     const allValues = [];
 
     points.forEach(p => {
 
         Object.entries(p.values || {}).forEach(([_, value]) => {
+
             allValues.push(value);
+
         });
 
     });
 
     const maxValue = Math.max(...allValues, 10);
 
-    // небольшой запас сверху
     const chartMax = Math.ceil(maxValue * 1.15);
+
     // =========================
     // CHART
     // =========================
+
     new Chart(ctx, {
 
         type: 'radar',
@@ -128,7 +167,33 @@ export function renderRadarMulti(canvas, config) {
 
             responsive: true,
 
+            maintainAspectRatio: true,
+
+            plugins: {
+
+                legend: {
+
+                    position: 'bottom',
+
+                    labels: {
+
+                        usePointStyle: true,
+
+                        pointStyle: 'circle',
+
+                        padding: 20,
+
+                        font: {
+                            size: 13
+                        },
+
+                        color: '#334155'
+                    }
+                }
+            },
+
             scales: {
+
                 r: {
 
                     beginAtZero: true,
@@ -138,44 +203,32 @@ export function renderRadarMulti(canvas, config) {
                     max: chartMax,
 
                     ticks: {
-                        stepSize: Math.ceil(chartMax / 5)
-                    }
-                }
-            },
 
-            plugins: {
-                legend: {
-                    position: 'bottom'
+                        stepSize: Math.ceil(chartMax / 5),
+
+                        backdropColor: 'transparent',
+
+                        color: '#64748b'
+                    },
+
+                    grid: {
+                        color: 'rgba(148,163,184,0.15)'
+                    },
+
+                    angleLines: {
+                        color: 'rgba(148,163,184,0.12)'
+                    },
+
+                    pointLabels: {
+
+                        color: '#475569',
+
+                        font: {
+                            size: 11
+                        }
+                    }
                 }
             }
         }
     });
-
-    // new Chart(ctx, {
-
-    //     type: 'radar',
-
-    //     data: {
-    //         labels,
-    //         datasets
-    //     },
-
-    //     options: {
-
-    //         responsive: true,
-
-    //         scales: {
-    //             r: {
-    //                 beginAtZero: true,
-    //                 suggestedMax: 100
-    //             }
-    //         },
-
-    //         plugins: {
-    //             legend: {
-    //                 position: 'bottom'
-    //             }
-    //         }
-    //     }
-    // });
 }

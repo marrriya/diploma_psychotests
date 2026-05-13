@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <title>Результаты тестирования</title>
 
-    <link rel="stylesheet"
-          href="{{ url_for('static', filename='style/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/group_results.css') }}">
 </head>
 
 <body>
@@ -45,125 +45,110 @@
 
             <section class="group-results-section">
 
-                <!-- ГРУППА -->
+                <!-- ГРУППА (единая карточка) -->
+                <div class="group-results-card">
 
-                <div class="group-header">
+                    <div class="group-header">
 
-                    <h2>{{ group.name }}</h2>
+                        <h2>{{ group.name }}</h2>
 
-                    <div class="group-meta">
-                        Студентов: {{ group.students_count }}
+                        <div class="group-meta">
+                            Студентов: {{ group.students_count }}
+                        </div>
+
                     </div>
 
-                </div>
+                    <!-- ТЕСТЫ -->
+                    {% if group.tests %}
 
-                <!-- ТЕСТЫ -->
+                        {% for test in group.tests %}
 
-                {% if group.tests %}
+                            <div class="test-results-card">
 
-                    {% for test in group.tests %}
+                                <!-- HEADER TEST -->
+                                <div class="test-header">
 
-                        <div class="test-results-card">
+                                    <div>
 
-                            <!-- ИНФОРМАЦИЯ О ТЕСТЕ -->
+                                        <div class="test-topic">
+                                            {{ test.topic }}
+                                        </div>
 
-                            <div class="test-header">
+                                        <div class="test-title">
+                                            {{ test.title }}
+                                        </div>
 
-                                <div>
-
-                                    <div class="test-topic">
-                                        {{ test.topic }}
                                     </div>
 
-                                    <div class="test-title">
-                                        {{ test.title }}
-                                    </div>
+                                    <div class="completion-block">
 
-                                </div>
+                                        <div class="completion-label">
+                                            Прошли тест
+                                        </div>
 
-                                <!-- ПРОЦЕНТ ПРОШЕДШИХ -->
+                                        <div class="completion-value">
+                                            {{ test.completed_percent }}%
+                                        </div>
 
-                                <div class="completion-block">
-
-                                    <div class="completion-label">
-                                        Прошли тест
-                                    </div>
-
-                                    <div class="completion-value">
-                                        {{ test.completed_percent }}%
                                     </div>
 
                                 </div>
+
+                                <!-- RESULTS -->
+                                {% if test.results %}
+
+                                    <table class="results-table">
+
+                                        <thead>
+                                            <tr>
+                                                <th>Username</th>
+                                                <th>Баллы</th>
+                                            </tr>
+                                        </thead>
+
+                                        <tbody>
+
+                                            {% for result in test.results %}
+
+                                                <tr>
+                                                    <td>{{ result.username }}</td>
+                                                    <td>{{ result.score }}</td>
+                                                </tr>
+
+                                            {% endfor %}
+
+                                        </tbody>
+
+                                    </table>
+
+                                {% else %}
+
+                                    <div class="empty-text">
+                                        Пока никто не прошёл тест
+                                    </div>
+
+                                {% endif %}
+
+                                <a href="/teacher/group_results/{{ group.id }}/{{ test.id }}"
+                                   class="view-results-btn">
+
+                                    Посмотреть результаты
+
+                                </a>
 
                             </div>
 
+                        {% endfor %}
 
-                            <!-- РЕЗУЛЬТАТЫ СТУДЕНТОВ -->
+                    {% else %}
 
-                            {% if test.results %}
-
-                                <table class="results-table">
-
-                                    <thead>
-
-                                        <tr>
-                                            <th>Username</th>
-                                            <th>Дата</th>
-                                            <th>Баллы</th>
-                                        </tr>
-
-                                    </thead>
-
-                                    <tbody>
-
-                                        {% for result in test.results %}
-
-                                            <tr>
-
-                                                <td>
-                                                    {{ result.username }}
-                                                </td>
-
-                                                <td>
-                                                    {{ result.attempt_date }}
-                                                </td>
-
-                                                <td>
-                                                    {{ result.score }}
-                                                </td>
-
-                                            </tr>
-
-                                        {% endfor %}
-
-                                    </tbody>
-
-                                </table>
-
-                            {% else %}
-
-                                <div class="empty-text">
-                                    Пока никто не прошёл тест
-                                </div>
-
-                            {% endif %}
-                            <!-- <a href="/teacher/group_results/{{ test.id }}" class="view-results-btn">
-                                Посмотреть результаты
-                            </a> -->
-                            <a href="/teacher/group_results/{{ group.id }}/{{ test.id }}" class="view-results-btn">
-                                Посмотреть результаты
-                            </a>
+                        <div class="empty-text">
+                            Группе пока не назначены тесты
                         </div>
 
-                    {% endfor %}
+                    {% endif %}
 
-                {% else %}
-
-                    <div class="empty-text">
-                        Группе пока не назначены тесты
-                    </div>
-
-                {% endif %}
+                </div>
 
             </section>
 

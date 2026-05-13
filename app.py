@@ -7,6 +7,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import random
 import string
 from collections import defaultdict
+from flask import Blueprint, render_template, session, redirect
+import sqlite3
 
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'  # для сессий
@@ -319,89 +321,120 @@ class VisualizationBuilder:
 
         return charts   
 
-                
-
-###. АДМИНКА. ###
-    # def is_admin():
-    #     print("CHECK ADMIN:", session)
-    #     return session.get('role') == 'admin'
-
-    # # ===================== ADMIN: USERS =====================
-    # @app.route('/admin/users')
-    # def admin_users():
-    #     if not is_admin(): abort(403)
-    #     db = get_db()
-    #     users = db.execute("SELECT * FROM users").fetchall()
-    #     return render_template('admin/users.html', users=users)
 
 
-    # @app.route('/admin/delete_user/<int:id>')
-    # def delete_user(id):
-    #     if not is_admin(): abort(403)
-    #     db = get_db()
-    #     db.execute("DELETE FROM users WHERE id=?", (id,))
-    #     db.commit()
-    #     flash('Пользователь удален')
-    #     return redirect('/admin/users')
+art_bp = Blueprint("art", __name__)
 
-    # # ===================== ADMIN: TESTS =====================
-    # @app.route('/admin/tests')
-    # def admin_tests():
-    #     if not is_admin(): abort(403)
-    #     db = get_db()
-    #     tests = db.execute("SELECT * FROM tests").fetchall()
-    #     return render_template('admin/tests.html', tests=tests)
+DB_PATH = "database.db"
 
 
-    # @app.route('/admin/tests/create', methods=['GET', 'POST'])
-    # def create_test():
-    #     if not is_admin(): abort(403)
+def get_db():
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
 
-    #     if request.method == 'POST':
-    #         title = request.form['title']
-    #         topic = request.form['topic']
-    #         description = request.form['description']
 
-    #         db = get_db()
-    #         db.execute(
-    #             "INSERT INTO tests (title, topic, description) VALUES (?, ?, ?)",
-    #             (title, topic, description)
-    #         )
-    #         db.commit()
-    #         flash('Тест создан')
-    #         return redirect('/admin/tests')
+@app.route("/art/<int:test_id>")
+def flower_art(test_id):
 
-    #     return render_template('admin/create_test.html')
+    conn = sqlite3.connect("database.db")
+    cursor = conn.cursor()
 
-    # @app.route('/admin/tests/edit/<int:id>', methods=['GET', 'POST'])
-    # def edit_test(id):
-    #     if not is_admin(): abort(403)
-    #     db = get_db()
+    # =========================
+    # visualization
+    # =========================
 
-    #     if request.method == 'POST':
-    #         title = request.form['title']
-    #         topic = request.form['topic']
-    #         description = request.form['description']
+    cursor.execute("""
+        SELECT id, title
+        FROM visualizations
+        WHERE test_id = ?
+        AND type = 'art'
+        AND chart_type = 'flower'
+        LIMIT 1
+    """, (test_id,))
 
-    #         db.execute(
-    #             "UPDATE tests SET title=?, topic=?, description=? WHERE id=?",
-    #             (title, topic, description, id)
-    #         )
-    #         db.commit()
-    #         flash('Тест обновлен')
-    #         return redirect('/admin/tests')
+    viz = cursor.fetchone()
+    visualization_id = viz[0]
 
-    #     test = db.execute("SELECT * FROM tests WHERE id=?", (id,)).fetchone()
-    #     return render_template('admin/edit_test.html', test=test)
+    # =========================
+    # roles
+    # =========================
 
-    # @app.route('/admin/tests/delete/<int:id>')
-    # def delete_test(id):
-    #     if not is_admin(): abort(403)
-    #     db = get_db()
-    #     db.execute("DELETE FROM tests WHERE id=?", (id,))
-    #     db.commit()
-    #     flash('Тест удален')
-    #     return redirect('/admin/tests')
+    cursor.execute("""
+        SELECT vr.role_key, vr.scale_id, s.name
+        FROM visualization_roles vr
+        JOIN scales s ON s.id = vr.scale_id
+        WHERE vr.visualization_id = ?
+    """, (visualization_id,))
+
+    roles = cursor.fetchall()
+
+    role_map = {r[0]: r[1] for r in roles}
+    role_names = {r[0]: r[2] for r in roles}
+
+    # =========================
+    # ВСЕ СТУДЕНТЫ + РЕЗУЛЬТАТЫ
+    # =========================
+
+    cursor.execute("""
+        SELECT
+            u.id,
+            u.name,
+            ur.scale_id,
+            ur.score
+        FROM user_results ur
+        JOIN users u ON u.id = ur.user_id
+        WHERE ur.scale_id IN (
+            SELECT scale_id
+            FROM visualization_roles
+            WHERE visualization_id = ?
+        )
+    """, (visualization_id,))
+
+    rows = cursor.fetchall()
+
+    # =========================
+    # GROUP BY USER
+    # =========================
+
+    users = {}
+
+    for user_id, name, scale_id, score in rows:
+
+        if user_id not in users:
+            users[user_id] = {
+                "name": name,
+                "scores": {}
+            }
+
+        users[user_id]["scores"][scale_id] = score
+
+    # =========================
+    # FLOWERS LIST
+    # =========================
+
+    flowers = []
+
+    for user in users.values():
+
+        scores = user["scores"]
+
+        flowers.append({
+            "name": user["name"],
+
+            "petal_shape_score": scores.get(role_map["petal_shape"], 0),
+            "petal_color_score": scores.get(role_map["petal_color"], 0),
+            "flower_size_score": scores.get(role_map["flower_size"], 0),
+            "petal_count_score": scores.get(role_map["petal_count"], 0),
+            "left_leaf_score": scores.get(role_map["left_leaf"], 0),
+            "right_leaf_score": scores.get(role_map["right_leaf"], 0),
+        })
+
+    return render_template(
+        "flower_art.html",
+        flowers=flowers,
+        role_names=role_names
+    )
 
 
 # ИНИЦИАЛИЗАЦИЯ БД 
@@ -1305,20 +1338,48 @@ def teacher_results():
 
 @app.route('/teacher/group_results/<int:group_id>/<int:test_id>')
 def group_results(group_id, test_id):
+    # def get_color(index, total):
+    #     if total <= 1:
+    #         return "#22c55e"
+
+    #     ratio = index / (total - 1)
+
+    #     # зелёный → жёлтый → красный
+    #     r = int(255 * ratio)
+    #     g = int(200 * (1 - ratio))
+    #     b = 80
+
+    #     return f"rgb({r},{g},{b})"
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+    # def get_color(index, total):
+
+    #     if total <= 1:
+    #         return "rgb(255,245,180)"
+
+    #     ratio = index / (total - 1)
+
+    #     # светлый жёлтый -> мягкий оранжевый -> светлый красный
+
+    #     r = 255
+
+    #     g = int(245 - (ratio * 120))
+
+    #     b = int(180 - (ratio * 80))
+
+    #     return f"rgb({r},{g},{b})"
     def get_color(index, total):
         if total <= 1:
-            return "#22c55e"
+            return "#60a5fa"  # базовый голубой
 
         ratio = index / (total - 1)
 
-        # зелёный → жёлтый → красный
-        r = int(255 * ratio)
-        g = int(200 * (1 - ratio))
-        b = 80
+        # cyan → blue → violet (как в графиках)
+        r = int(103 + (129 - 103) * ratio)   # 67 -> 129
+        g = int(232 + (140 - 232) * ratio)   # 232 -> 140
+        b = int(250 + (248 - 250) * ratio)   # 250 -> 248
 
         return f"rgb({r},{g},{b})"
-    conn = sqlite3.connect('database.db')
-    cursor = conn.cursor()
 
     # -----------------------
     # GROUP STATS

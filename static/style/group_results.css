@@ -1,0 +1,227 @@
+/* =========================
+   BASE (единый стиль системы)
+========================= */
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background: #F0F0F5;
+    color: #2F3A59;
+}
+
+/* =========================
+   HEADER FIX
+========================= */
+
+.header {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+/* =========================
+   CONTAINER (как в main)
+========================= */
+
+.container {
+    /* max-width: 1200px; */
+    margin: 0 auto;
+    padding: 30px;
+}
+
+/* =========================
+   PAGE TITLE
+========================= */
+
+.container h1 {
+    font-size: 22px;
+    margin-bottom: 25px;
+}
+
+/* =========================
+   GROUP SECTION
+========================= */
+
+.group-results-section {
+    margin-bottom: 30px;
+}
+
+/* =========================
+   GROUP HEADER
+========================= */
+
+.group-header {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 14px;
+
+    padding: 16px 18px;
+    margin-bottom: 15px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+}
+
+.group-header h2 {
+    font-size: 18px;
+    margin: 0;
+}
+
+.group-meta {
+    font-size: 13px;
+    color: #6b7280;
+}
+
+/* =========================
+   TEST CARD
+========================= */
+
+.test-results-card {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 14px;
+
+    padding: 18px;
+    margin-bottom: 15px;
+
+    box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+
+    transition: 0.2s ease;
+}
+
+.test-results-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 22px rgba(0,0,0,0.10);
+}
+
+/* =========================
+   TEST HEADER
+========================= */
+
+.test-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+
+    margin-bottom: 12px;
+}
+
+/* =========================
+   TEST TEXT
+========================= */
+
+.test-topic {
+    font-size: 13px;
+    color: #6b7280;
+    margin-bottom: 2px;
+}
+
+.test-title {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+/* =========================
+   COMPLETION BLOCK (важный акцент)
+========================= */
+
+.completion-block {
+    text-align: right;
+    background: #f7f9ff;
+    border: 1px solid #eef2ff;
+    padding: 10px 12px;
+    border-radius: 12px;
+    min-width: 120px;
+}
+
+.completion-label {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.completion-value {
+    font-size: 18px;
+    font-weight: bold;
+    color: #4F7CFE;
+}
+
+/* =========================
+   TABLE (сильный апгрейд читаемости)
+========================= */
+
+.results-table {
+    width: 100%;
+    border-collapse: collapse;
+
+    margin-top: 12px;
+    font-size: 13px;
+}
+
+.results-table thead {
+    background: #f3f4f8;
+}
+
+.results-table th,
+.results-table td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.results-table tbody tr:hover {
+    background: #f9fafb;
+}
+
+/* =========================
+   EMPTY STATES
+========================= */
+
+.empty-text {
+    padding: 15px;
+    color: #9ca3af;
+    font-size: 13px;
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #eee;
+}
+
+/* =========================
+   VIEW RESULTS BUTTON
+========================= */
+
+.view-results-btn {
+    display: inline-block;
+    margin-top: 12px;
+
+    background: #4F7CFE;
+    color: white;
+
+    padding: 8px 12px;
+    border-radius: 10px;
+
+    text-decoration: none;
+    font-size: 13px;
+
+    transition: 0.2s;
+}
+
+.view-results-btn:hover {
+    background: #3f6be0;
+}
+/* =========================
+   GROUP WRAPPER CARD
+========================= */
+
+.group-results-card {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 16px;
+
+    padding: 18px;
+    margin-bottom: 25px;
+
+    box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+}
